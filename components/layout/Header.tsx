@@ -5,9 +5,10 @@ import { useState } from "react";
 
 type HeaderProps = {
   variant?: "marketing" | "student";
+  isLoggedIn?: boolean;
 };
 
-export function Header({ variant = "marketing" }: HeaderProps) {
+export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -38,7 +39,11 @@ export function Header({ variant = "marketing" }: HeaderProps) {
                 </a>
               </li>
               <li>
-                <Link href="/login" onClick={() => setMenuOpen(false)}>Student Login</Link>
+                {isLoggedIn ? (
+                  <Link href="/student" onClick={() => setMenuOpen(false)}>My Dashboard</Link>
+                ) : (
+                  <Link href="/login" onClick={() => setMenuOpen(false)}>Student Login</Link>
+                )}
               </li>
             </>
           ) : (

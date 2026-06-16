@@ -7,12 +7,18 @@ import { Courses } from "@/components/marketing/Courses";
 import { Features } from "@/components/marketing/Features";
 import { Gallery } from "@/components/marketing/Gallery";
 import { Hero } from "@/components/marketing/Hero";
+import { createClient } from "@/lib/supabase/server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <>
       <Doodles />
-      <Header />
+      <Header isLoggedIn={!!user} />
       <main>
         <Hero />
         <About />

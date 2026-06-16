@@ -29,9 +29,9 @@
   --radius-pill: 999px;
 
   /* Typography */
-  --font-display: 'Caveat', cursive;
-  --font-hand: 'Patrick Hand', cursive;
-  --font-body: 'Nunito', sans-serif;
+  --font-display: var(--font-caveat), cursive;
+  --font-hand: var(--font-patrick), cursive;
+  --font-body: var(--font-nunito), sans-serif;
 }
 
 /* Reset */

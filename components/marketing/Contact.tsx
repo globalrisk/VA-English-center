@@ -1,5 +1,6 @@
 "use client";
 
+import { AGE_GROUPS } from "@/lib/age-groups";
 import { FormEvent, useState } from "react";
 
 export function Contact() {
@@ -62,9 +63,11 @@ export function Contact() {
                 <label htmlFor="course">Interested In</label>
                 <select id="course" name="course">
                   <option value="">Select a course...</option>
-                  <option value="kids">Kids English</option>
-                  <option value="teen">Teen &amp; Exam Prep</option>
-                  <option value="adult">Adult Conversation</option>
+                  {AGE_GROUPS.map((group) => (
+                    <option key={group.value} value={group.value}>
+                      {group.label} ({group.description})
+                    </option>
+                  ))}
                   <option value="private">Private Tutoring</option>
                 </select>
               </div>

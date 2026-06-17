@@ -2,11 +2,19 @@
 -- Prefer: npx supabase db query --linked -f supabase/schema.sql
 -- Or run this file in Supabase SQL Editor
 
+CREATE TYPE public.age_group AS ENUM (
+  'kids',
+  'little_teens',
+  'teens',
+  'young_adults'
+);
+
 CREATE TABLE IF NOT EXISTS public.courses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
   cover_image_url text,
+  age_group public.age_group NOT NULL,
   created_at timestamptz DEFAULT now()
 );
 
@@ -21,28 +29,80 @@ CREATE TABLE IF NOT EXISTS public.lessons (
   created_at timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  age_group public.age_group NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
+CREATE POLICY "Users can read own profile"
+  ON public.profiles FOR SELECT
+  TO authenticated
+  USING (id = auth.uid());
 
 DROP POLICY IF EXISTS "Students can read courses" ON public.courses;
-DROP POLICY IF EXISTS "Students can read lessons" ON public.lessons;
-
-CREATE POLICY "Students can read courses"
+DROP POLICY IF EXISTS "Students can read courses for their age group" ON public.courses;
+CREATE POLICY "Students can read courses for their age group"
   ON public.courses FOR SELECT
   TO authenticated
-  USING (true);
+  USING (
+    age_group = (
+      SELECT p.age_group FROM public.profiles p WHERE p.id = auth.uid()
+    )
+  );
 
-CREATE POLICY "Students can read lessons"
+DROP POLICY IF EXISTS "Students can read lessons" ON public.lessons;
+DROP POLICY IF EXISTS "Students can read lessons for their age group" ON public.lessons;
+CREATE POLICY "Students can read lessons for their age group"
   ON public.lessons FOR SELECT
   TO authenticated
-  USING (true);
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.courses c
+      INNER JOIN public.profiles p ON p.id = auth.uid()
+      WHERE c.id = lessons.course_id
+        AND c.age_group = p.age_group
+    )
+  );
 
-INSERT INTO public.courses (title, description)
-SELECT 'Kids English', 'Playful lessons for young learners — songs, games, and stories.'
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  selected_age_group public.age_group;
+BEGIN
+  selected_age_group := COALESCE(
+    (NEW.raw_user_meta_data->>'age_group')::public.age_group,
+    'teens'::public.age_group
+  );
+
+  INSERT INTO public.profiles (id, age_group)
+  VALUES (NEW.id, selected_age_group);
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+INSERT INTO public.courses (title, description, age_group)
+SELECT 'Kids English', 'Playful lessons for young learners — songs, games, and stories.', 'kids'
 WHERE NOT EXISTS (SELECT 1 FROM public.courses WHERE title = 'Kids English');
 
-INSERT INTO public.courses (title, description)
-SELECT 'Teen Exam Prep', 'IELTS and school English with structured practice.'
+INSERT INTO public.courses (title, description, age_group)
+SELECT 'Teen Exam Prep', 'IELTS and school English with structured practice.', 'teens'
 WHERE NOT EXISTS (SELECT 1 FROM public.courses WHERE title = 'Teen Exam Prep');
 
 INSERT INTO public.lessons (course_id, title, content, order_index)

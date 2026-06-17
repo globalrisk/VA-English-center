@@ -34,13 +34,28 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isStudentRoute = request.nextUrl.pathname.startsWith("/student");
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isLoginRoute = request.nextUrl.pathname === "/login";
 
-  if (isStudentRoute && !user) {
+  if ((isStudentRoute || isAdminRoute) && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", request.nextUrl.pathname);
     return NextResponse.redirect(url);
+  }
+
+  if (isAdminRoute && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/student";
+      return NextResponse.redirect(url);
+    }
   }
 
   if (isLoginRoute && user) {

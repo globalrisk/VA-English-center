@@ -1,5 +1,6 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type { Course, Lesson } from "@/types/course";
 import Link from "next/link";
@@ -12,6 +13,8 @@ type PageProps = {
 export default async function CourseDetailPage({ params }: PageProps) {
   const { id } = await params;
   const supabase = await createClient();
+  const profile = await getCurrentProfile();
+  const userIsAdmin = isAdmin(profile);
 
   const { data: course, error: courseError } = await supabase
     .from("courses")
@@ -35,7 +38,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
   return (
     <>
       <Doodles />
-      <Header variant="student" />
+      <Header variant="student" isAdmin={userIsAdmin} />
       <main className="section">
         <div className="container">
           <div className="section-header">

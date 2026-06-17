@@ -1,15 +1,19 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { ageGroupLabel } from "@/lib/age-groups";
+import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type { Course } from "@/types/course";
 import Link from "next/link";
 
 export default async function StudentCoursesPage() {
   const supabase = await createClient();
+  const profile = await getCurrentProfile();
+  const userIsAdmin = isAdmin(profile);
 
   const { data: courses, error } = await supabase
     .from("courses")
-    .select("id, title, description, cover_image_url, created_at")
+    .select("id, title, description, cover_image_url, age_group, created_at")
     .order("created_at", { ascending: true });
 
   const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://your-project.supabase.co";
@@ -17,12 +21,19 @@ export default async function StudentCoursesPage() {
   return (
     <>
       <Doodles />
-      <Header variant="student" />
+      <Header variant="student" isAdmin={userIsAdmin} />
       <main className="section">
         <div className="container">
           <div className="section-header">
             <span className="section-label">Study</span>
             <h1 className="section-title">My <span className="title-gold">Courses</span></h1>
+            {profile && (
+              <p className="section-sub">
+                {userIsAdmin
+                  ? "Admin view: all courses"
+                  : `Showing ${ageGroupLabel(profile.age_group)} courses only`}
+              </p>
+            )}
           </div>
 
           {!hasSupabase && (

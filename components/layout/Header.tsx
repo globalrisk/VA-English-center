@@ -1,15 +1,18 @@
 "use client";
 
+import { LogoutButton } from "@/components/student/LogoutButton";
 import Link from "next/link";
 import { useState } from "react";
 
 type HeaderProps = {
   variant?: "marketing" | "student";
   isLoggedIn?: boolean;
+  isAdmin?: boolean;
 };
 
-export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProps) {
+export function Header({ variant = "marketing", isLoggedIn = false, isAdmin = false }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const showSignOut = variant === "student" || isLoggedIn;
 
   return (
     <header className="header">
@@ -18,15 +21,8 @@ export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProp
           <span className="logo-icon">✦</span>
           <span className="logo-text">VA English</span>
         </Link>
-        <button
-          className="nav-toggle"
-          aria-label="Toggle menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((o) => !o)}
-        >
-          <span></span><span></span><span></span>
-        </button>
-        <ul className={`nav-links${menuOpen ? " open" : ""}`}>
+        <div className="nav-end">
+          <ul className={`nav-links${menuOpen ? " open" : ""}`}>
           {variant === "marketing" ? (
             <>
               <li><a href="#about" onClick={() => setMenuOpen(false)}>About</a></li>
@@ -50,10 +46,25 @@ export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProp
             <>
               <li><Link href="/student" onClick={() => setMenuOpen(false)}>Dashboard</Link></li>
               <li><Link href="/student/courses" onClick={() => setMenuOpen(false)}>My Courses</Link></li>
+              {isAdmin && (
+                <li><Link href="/admin/students" onClick={() => setMenuOpen(false)}>Admin</Link></li>
+              )}
               <li><Link href="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
             </>
           )}
-        </ul>
+          </ul>
+          {showSignOut && (
+            <LogoutButton variant="nav" onAfterLogout={() => setMenuOpen(false)} />
+          )}
+          <button
+            className="nav-toggle"
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((o) => !o)}
+          >
+            <span></span><span></span><span></span>
+          </button>
+        </div>
       </nav>
     </header>
   );

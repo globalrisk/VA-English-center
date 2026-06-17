@@ -1,5 +1,6 @@
 "use client";
 
+import { AGE_GROUPS, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -12,6 +13,8 @@ export default function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [ageGroup, setAgeGroup] = useState<AgeGroup>("kids");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,11 +39,17 @@ export default function LoginForm() {
           return;
         }
       } else {
+        if (password !== confirmPassword) {
+          setError("Passwords do not match. Please try again.");
+          return;
+        }
+
         const { data, error: authError } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/auth/callback?next=/student`,
+            data: { age_group: ageGroup },
           },
         });
         if (authError) {
@@ -103,6 +112,40 @@ export default function LoginForm() {
                   minLength={6}
                 />
               </div>
+              {mode === "signup" && (
+                <div className="form-group">
+                  <label htmlFor="confirm-password">Confirm password</label>
+                  <input
+                    id="confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Enter password again"
+                    required
+                    minLength={6}
+                  />
+                </div>
+              )}
+              {mode === "signup" && (
+                <div className="form-group">
+                  <label htmlFor="age-group">Age group</label>
+                  <select
+                    id="age-group"
+                    value={ageGroup}
+                    onChange={(e) => setAgeGroup(e.target.value as AgeGroup)}
+                    required
+                  >
+                    {AGE_GROUPS.map((group) => (
+                      <option key={group.value} value={group.value}>
+                        {group.label} ({group.description})
+                      </option>
+                    ))}
+                  </select>
+                  <p style={{ color: "var(--ink-light)", fontSize: "0.9rem", marginTop: "0.35rem" }}>
+                    You will only see courses for your age group.
+                  </p>
+                </div>
+              )}
               {error && (
                 <p style={{ color: "var(--red-cta)", fontFamily: "var(--font-hand)" }}>{error}</p>
               )}
@@ -129,7 +172,11 @@ export default function LoginForm() {
                     type="button"
                     className="course-link"
                     style={{ background: "none", border: "none", cursor: "pointer" }}
-                    onClick={() => setMode("signup")}
+                    onClick={() => {
+                      setMode("signup");
+                      setConfirmPassword("");
+                      setError(null);
+                    }}
                   >
                     Sign up
                   </button>
@@ -141,7 +188,11 @@ export default function LoginForm() {
                     type="button"
                     className="course-link"
                     style={{ background: "none", border: "none", cursor: "pointer" }}
-                    onClick={() => setMode("login")}
+                    onClick={() => {
+                      setMode("login");
+                      setConfirmPassword("");
+                      setError(null);
+                    }}
                   >
                     Sign in
                   </button>

@@ -1,4 +1,11 @@
 import type { AgeGroup } from "@/lib/age-groups";
+import type { BuiltinGame } from "@/lib/builtin-games";
+import type { LessonType } from "@/lib/lesson-types";
+
+export type GameCard = {
+  term: string;
+  definition: string;
+};
 
 export type Lesson = {
   id: string;
@@ -8,6 +15,14 @@ export type Lesson = {
   image_url: string | null;
   video_url: string | null;
   order_index: number;
+  lesson_type?: LessonType;
+  embed_url?: string | null;
+  builtin_game?: BuiltinGame | null;
+  game_cards?: GameCard[];
+};
+
+export type CourseAgeGroupRow = {
+  age_group: AgeGroup;
 };
 
 export type Course = {
@@ -15,10 +30,14 @@ export type Course = {
   title: string;
   description: string | null;
   cover_image_url: string | null;
-  age_group: AgeGroup;
   created_at: string;
+  course_age_groups?: CourseAgeGroupRow[];
   lessons?: Lesson[];
 };
+
+export function getCourseAgeGroups(course: Course): AgeGroup[] {
+  return course.course_age_groups?.map((row) => row.age_group) ?? [];
+}
 
 export type Profile = {
   id: string;

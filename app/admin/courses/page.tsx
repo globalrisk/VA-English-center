@@ -2,12 +2,12 @@ import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { StudentDirectoryRow } from "@/types/course";
+import type { Course } from "@/types/course";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { StudentAgeGroupEditor } from "./StudentAgeGroupEditor";
+import { CourseAgeGroupEditor } from "./CourseAgeGroupEditor";
 
-export default async function AdminStudentsPage() {
+export default async function AdminCoursesPage() {
   const profile = await getCurrentProfile();
 
   if (!profile || !isAdmin(profile)) {
@@ -15,7 +15,10 @@ export default async function AdminStudentsPage() {
   }
 
   const supabase = await createClient();
-  const { data: students, error } = await supabase.rpc("admin_list_students");
+  const { data: courses, error } = await supabase
+    .from("courses")
+    .select("id, title, description, cover_image_url, created_at, course_age_groups(age_group)")
+    .order("title", { ascending: true });
 
   return (
     <>
@@ -26,24 +29,24 @@ export default async function AdminStudentsPage() {
           <div className="section-header">
             <span className="section-label">Admin</span>
             <h1 className="section-title">
-              Manage <span className="title-gold">Students</span>
+              Manage <span className="title-gold">Courses</span>
             </h1>
             <p className="section-sub">
-              Set each student&apos;s age group. They will only see courses for that group.
+              Create, edit, and delete courses. Assign one or more age groups per course.
             </p>
           </div>
 
           <p style={{ marginBottom: "1.5rem" }}>
-            <Link href="/admin/courses" className="course-link">Manage courses →</Link>
+            <Link href="/admin/students" className="course-link">Manage students →</Link>
           </p>
 
           {error && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
-              Could not load students: {error.message}
+              Could not load courses: {error.message}
             </p>
           )}
 
-          <StudentAgeGroupEditor students={(students as StudentDirectoryRow[]) ?? []} />
+          <CourseAgeGroupEditor courses={(courses as Course[]) ?? []} />
 
           <p style={{ marginTop: "2rem" }}>
             <Link href="/student" className="course-link">← Back to dashboard</Link>

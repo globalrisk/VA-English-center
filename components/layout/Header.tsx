@@ -47,7 +47,10 @@ export function Header({ variant = "marketing", isLoggedIn = false, isAdmin = fa
               <li><Link href="/student" onClick={() => setMenuOpen(false)}>Dashboard</Link></li>
               <li><Link href="/student/courses" onClick={() => setMenuOpen(false)}>My Courses</Link></li>
               {isAdmin && (
-                <li><Link href="/admin/students" onClick={() => setMenuOpen(false)}>Admin</Link></li>
+                <>
+                  <li><Link href="/admin/students" onClick={() => setMenuOpen(false)}>Students</Link></li>
+                  <li><Link href="/admin/courses" onClick={() => setMenuOpen(false)}>Courses</Link></li>
+                </>
               )}
               <li><Link href="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
             </>

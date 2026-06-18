@@ -1,9 +1,9 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
-import { ageGroupLabel } from "@/lib/age-groups";
+import { ageGroupLabel, ageGroupsLabel } from "@/lib/age-groups";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { Course } from "@/types/course";
+import { getCourseAgeGroups, type Course } from "@/types/course";
 import Link from "next/link";
 
 export default async function StudentCoursesPage() {
@@ -13,7 +13,7 @@ export default async function StudentCoursesPage() {
 
   const { data: courses, error } = await supabase
     .from("courses")
-    .select("id, title, description, cover_image_url, age_group, created_at")
+    .select("id, title, description, cover_image_url, created_at, course_age_groups(age_group)")
     .order("created_at", { ascending: true });
 
   const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://your-project.supabase.co";
@@ -64,6 +64,9 @@ export default async function StudentCoursesPage() {
                     />
                   )}
                   <h3>{course.title}</h3>
+                  <p style={{ fontSize: "0.9rem", color: "var(--blue-teal)", marginBottom: "0.5rem" }}>
+                    {ageGroupsLabel(getCourseAgeGroups(course))}
+                  </p>
                   <p>{course.description}</p>
                   <Link href={`/student/course/${course.id}`} className="course-link">
                     Start learning →

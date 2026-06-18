@@ -1,5 +1,6 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { LessonListItem } from "@/components/student/LessonListItem";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type { Course, Lesson } from "@/types/course";
@@ -28,7 +29,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
 
   const { data: lessons } = await supabase
     .from("lessons")
-    .select("id, course_id, title, content, image_url, video_url, order_index")
+    .select("id, course_id, title, content, order_index, lesson_type, embed_url, builtin_game")
     .eq("course_id", id)
     .order("order_index", { ascending: true });
 
@@ -54,24 +55,12 @@ export default async function CourseDetailPage({ params }: PageProps) {
           ) : (
             <div className="course-grid">
               {typedLessons.map((lesson, index) => (
-                <article key={lesson.id} className="course-card" data-color="blue">
-                  <h3>Lesson {index + 1}: {lesson.title}</h3>
-                  {lesson.content && <p>{lesson.content}</p>}
-                  {lesson.image_url && (
-                    <img
-                      src={lesson.image_url}
-                      alt={lesson.title}
-                      style={{ width: "100%", borderRadius: "12px", marginTop: "0.75rem" }}
-                    />
-                  )}
-                  {lesson.video_url && (
-                    <div style={{ marginTop: "1rem" }}>
-                      <a href={lesson.video_url} target="_blank" rel="noopener noreferrer" className="course-link">
-                        Watch video →
-                      </a>
-                    </div>
-                  )}
-                </article>
+                <LessonListItem
+                  key={lesson.id}
+                  courseId={id}
+                  lesson={lesson}
+                  index={index}
+                />
               ))}
             </div>
           )}

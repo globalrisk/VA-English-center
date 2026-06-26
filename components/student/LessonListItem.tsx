@@ -1,7 +1,11 @@
+"use client";
+
 import { builtinGameLabel } from "@/lib/builtin-games";
 import { lessonTypeLabel } from "@/lib/lesson-types";
 import type { Lesson } from "@/types/course";
 import Link from "next/link";
+import { useState } from "react";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 type Props = {
   courseId: string;
@@ -17,12 +21,36 @@ function lessonBadgeLabel(lesson: Lesson): string {
   return "Flashcards";
 }
 
+function OpenLessonLabel({ pending }: { pending: boolean }) {
+  if (pending) {
+    return (
+      <span
+        className="course-link btn-loading"
+        style={{ marginTop: "0.75rem", display: "inline-flex" }}
+      >
+        <LoadingSpinner size="sm" label="Opening lesson" />
+        Opening lesson…
+      </span>
+    );
+  }
+
+  return (
+    <span className="course-link" style={{ marginTop: "0.75rem", display: "inline-block" }}>
+      Open lesson →
+    </span>
+  );
+}
+
 export function LessonListItem({ courseId, lesson, index }: Props) {
+  const [pending, setPending] = useState(false);
+  const href = `/student/course/${courseId}/lesson/${lesson.id}`;
+
   return (
     <Link
-      href={`/student/course/${courseId}/lesson/${lesson.id}`}
+      href={href}
       className="course-card lesson-list-card"
       data-color="blue"
+      onClick={() => setPending(true)}
     >
       <span className="badge badge-yellow">{lessonBadgeLabel(lesson)}</span>
       <h3>Lesson {index + 1}: {lesson.title}</h3>
@@ -31,9 +59,7 @@ export function LessonListItem({ courseId, lesson, index }: Props) {
           {lesson.content.length > 120 ? `${lesson.content.slice(0, 120)}…` : lesson.content}
         </p>
       )}
-      <span className="course-link" style={{ marginTop: "0.75rem", display: "inline-block" }}>
-        Open lesson →
-      </span>
+      <OpenLessonLabel pending={pending} />
     </Link>
   );
 }

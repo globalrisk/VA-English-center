@@ -1,6 +1,7 @@
 "use client";
 
 import { AgeGroupMultiSelect } from "@/components/admin/AgeGroupMultiSelect";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ageGroupsLabel, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
 import { getCourseAgeGroups, type Course } from "@/types/course";
@@ -11,6 +12,28 @@ import { useState } from "react";
 type Props = {
   courses: Course[];
 };
+
+function CourseLessonsLink({ courseId }: { courseId: string }) {
+  const [pending, setPending] = useState(false);
+  const href = `/admin/courses/${courseId}/lessons`;
+
+  return (
+    <Link
+      href={href}
+      className={`btn btn-secondary btn-sm${pending ? " btn-loading" : ""}`}
+      onClick={() => setPending(true)}
+    >
+      {pending ? (
+        <>
+          <LoadingSpinner size="sm" label="Opening lessons" />
+          Opening…
+        </>
+      ) : (
+        "Lessons"
+      )}
+    </Link>
+  );
+}
 
 export function CourseAgeGroupEditor({ courses }: Props) {
   const router = useRouter();
@@ -170,10 +193,17 @@ export function CourseAgeGroupEditor({ courses }: Props) {
         </div>
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-primary btn-loading"
           disabled={creating || !newTitle.trim() || newAgeGroups.length === 0}
         >
-          {creating ? "Creating…" : "Create course"}
+          {creating ? (
+            <>
+              <LoadingSpinner size="sm" />
+              Creating…
+            </>
+          ) : (
+            "Create course"
+          )}
         </button>
       </form>
 
@@ -221,11 +251,18 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                   <div className="course-card-actions">
                     <button
                       type="button"
-                      className="btn btn-primary btn-sm"
+                      className="btn btn-primary btn-sm btn-loading"
                       disabled={isPending || !editTitle.trim() || editAgeGroups.length === 0}
                       onClick={() => handleUpdate(course.id)}
                     >
-                      {isPending ? "Saving…" : "Save changes"}
+                      {isPending ? (
+                        <>
+                          <LoadingSpinner size="sm" />
+                          Saving…
+                        </>
+                      ) : (
+                        "Save changes"
+                      )}
                     </button>
                     <button
                       type="button"
@@ -249,12 +286,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                     Age groups: <strong>{ageGroupsLabel(ageGroups)}</strong>
                   </p>
                   <div className="course-card-actions">
-                    <Link
-                      href={`/admin/courses/${course.id}/lessons`}
-                      className="btn btn-secondary btn-sm"
-                    >
-                      Lessons
-                    </Link>
+                    <CourseLessonsLink courseId={course.id} />
                     <button
                       type="button"
                       className="btn btn-secondary btn-sm"
@@ -265,11 +297,18 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                     </button>
                     <button
                       type="button"
-                      className="btn btn-danger btn-sm"
+                      className="btn btn-danger btn-sm btn-loading"
                       disabled={isPending}
                       onClick={() => handleDelete(course)}
                     >
-                      {isPending ? "Deleting…" : "Delete"}
+                      {isPending ? (
+                        <>
+                          <LoadingSpinner size="sm" />
+                          Deleting…
+                        </>
+                      ) : (
+                        "Delete"
+                      )}
                     </button>
                   </div>
                 </>

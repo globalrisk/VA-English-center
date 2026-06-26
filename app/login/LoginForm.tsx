@@ -2,6 +2,7 @@
 
 import { AGE_GROUPS, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -160,8 +161,15 @@ export default function LoginForm() {
                   {success}
                 </p>
               )}
-              <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
-                {loading ? "Please wait..." : mode === "login" ? "Sign In ✦" : "Sign Up ✦"}
+              <button type="submit" className="btn btn-primary btn-full btn-loading" disabled={loading}>
+                {loading ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    {mode === "login" ? "Signing in…" : "Signing up…"}
+                  </>
+                ) : (
+                  mode === "login" ? "Sign In ✦" : "Sign Up ✦"
+                )}
               </button>
             </form>
             <p style={{ marginTop: "1rem", textAlign: "center", fontFamily: "var(--font-hand)" }}>

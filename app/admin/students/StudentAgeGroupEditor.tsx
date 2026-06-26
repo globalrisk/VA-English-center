@@ -2,6 +2,7 @@
 
 import { AGE_GROUPS, ageGroupLabel, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import type { StudentDirectoryRow } from "@/types/course";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -62,18 +63,22 @@ export function StudentAgeGroupEditor({ students }: Props) {
             </p>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label htmlFor={`age-${student.id}`}>Age group</label>
-              <select
-                id={`age-${student.id}`}
-                value={student.age_group}
-                disabled={pendingId === student.id}
-                onChange={(e) => handleChange(student.id, e.target.value as AgeGroup)}
-              >
-                {AGE_GROUPS.map((group) => (
-                  <option key={group.value} value={group.value}>
-                    {group.label} ({group.description})
-                  </option>
-                ))}
-              </select>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <select
+                  id={`age-${student.id}`}
+                  value={student.age_group}
+                  disabled={pendingId === student.id}
+                  onChange={(e) => handleChange(student.id, e.target.value as AgeGroup)}
+                  style={{ flex: 1 }}
+                >
+                  {AGE_GROUPS.map((group) => (
+                    <option key={group.value} value={group.value}>
+                      {group.label} ({group.description})
+                    </option>
+                  ))}
+                </select>
+                {pendingId === student.id && <LoadingSpinner size="sm" label="Updating age group" />}
+              </div>
             </div>
           </article>
         ))}

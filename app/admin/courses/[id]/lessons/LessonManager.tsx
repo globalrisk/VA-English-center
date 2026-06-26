@@ -1,6 +1,7 @@
 "use client";
 
 import { GameCardsEditor } from "@/components/admin/GameCardsEditor";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { createClient } from "@/lib/supabase/client";
 import { BUILTIN_GAMES, builtinGameLabel, type BuiltinGame } from "@/lib/builtin-games";
 import { LESSON_TYPES, lessonTypeLabel, type LessonType } from "@/lib/lesson-types";
@@ -441,8 +442,15 @@ export function LessonManager({ courseId, lessons }: Props) {
             placeholder={`Auto (${lessons.length + 1})`}
           />
         </div>
-        <button type="submit" className="btn btn-primary" disabled={creating || !newLesson.title.trim()}>
-          {creating ? "Creating…" : "Create lesson"}
+        <button type="submit" className="btn btn-primary btn-loading" disabled={creating || !newLesson.title.trim()}>
+          {creating ? (
+            <>
+              <LoadingSpinner size="sm" />
+              Creating…
+            </>
+          ) : (
+            "Create lesson"
+          )}
         </button>
       </form>
 
@@ -500,10 +508,17 @@ export function LessonManager({ courseId, lessons }: Props) {
                   <div className="course-card-actions">
                     <button
                       type="submit"
-                      className="btn btn-primary btn-sm"
+                      className="btn btn-primary btn-sm btn-loading"
                       disabled={isPending || !editForm.title.trim()}
                     >
-                      {isPending ? "Saving…" : "Save changes"}
+                      {isPending ? (
+                        <>
+                          <LoadingSpinner size="sm" />
+                          Saving…
+                        </>
+                      ) : (
+                        "Save changes"
+                      )}
                     </button>
                     <button
                       type="button"
@@ -558,11 +573,18 @@ export function LessonManager({ courseId, lessons }: Props) {
                     </button>
                     <button
                       type="button"
-                      className="btn btn-danger btn-sm"
+                      className="btn btn-danger btn-sm btn-loading"
                       disabled={isPending}
                       onClick={() => handleDelete(lesson)}
                     >
-                      {isPending ? "Deleting…" : "Delete"}
+                      {isPending ? (
+                        <>
+                          <LoadingSpinner size="sm" />
+                          Deleting…
+                        </>
+                      ) : (
+                        "Delete"
+                      )}
                     </button>
                   </div>
                 </>

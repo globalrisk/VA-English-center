@@ -12,7 +12,7 @@ CREATE TYPE public.age_group AS ENUM (
 
 CREATE TYPE public.lesson_type AS ENUM ('content', 'video', 'game');
 
-CREATE TYPE public.builtin_game AS ENUM ('flashcards', 'quiz', 'match');
+CREATE TYPE public.builtin_game AS ENUM ('flashcards', 'quiz', 'match', 'blast');
 
 CREATE TABLE IF NOT EXISTS public.courses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

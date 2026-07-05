@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type { StudentDirectoryRow } from "@/types/course";
+import { AdminNavLink } from "@/components/admin/AdminNavLink";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StudentAgeGroupEditor } from "./StudentAgeGroupEditor";
@@ -34,7 +35,9 @@ export default async function AdminStudentsPage() {
           </div>
 
           <p style={{ marginBottom: "1.5rem" }}>
-            <Link href="/admin/courses" className="course-link">Manage courses →</Link>
+            <AdminNavLink href="/admin/courses" pendingLabel="Opening courses">
+              Manage courses →
+            </AdminNavLink>
           </p>
 
           {error && (

@@ -5,14 +5,13 @@ import type { GameCard } from "@/types/course";
 type Props = {
   cards: GameCard[];
   disabled?: boolean;
+  minCards?: number;
   onChange: (cards: GameCard[]) => void;
 };
 
 const emptyCard = (): GameCard => ({ term: "", definition: "" });
 
-const MIN_CARDS = 2;
-
-export function GameCardsEditor({ cards, disabled, onChange }: Props) {
+export function GameCardsEditor({ cards, disabled, minCards = 2, onChange }: Props) {
   function updateCard(index: number, field: keyof GameCard, value: string) {
     onChange(cards.map((card, i) => (i === index ? { ...card, [field]: value } : card)));
   }
@@ -22,7 +21,7 @@ export function GameCardsEditor({ cards, disabled, onChange }: Props) {
   }
 
   function removeCard(index: number) {
-    if (cards.length <= MIN_CARDS) return;
+    if (cards.length <= minCards) return;
     onChange(cards.filter((_, i) => i !== index));
   }
 
@@ -62,14 +61,16 @@ export function GameCardsEditor({ cards, disabled, onChange }: Props) {
           <button
             type="button"
             className="btn btn-secondary btn-sm"
-            disabled={disabled || cards.length <= MIN_CARDS}
+            disabled={disabled || cards.length <= minCards}
             onClick={() => removeCard(index)}
           >
             Remove card
           </button>
         </div>
       ))}
-      <p className="age-group-picker-hint">At least {MIN_CARDS} flashcards required for built-in games.</p>
+      <p className="age-group-picker-hint">
+        At least {minCards} flashcards with term and definition required for the selected game.
+      </p>
       <button type="button" className="btn btn-secondary btn-sm" disabled={disabled} onClick={addCard}>
         + Add flashcard
       </button>

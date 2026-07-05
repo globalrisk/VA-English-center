@@ -3,7 +3,12 @@
 import { GameCardsEditor } from "@/components/admin/GameCardsEditor";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { createClient } from "@/lib/supabase/client";
-import { BUILTIN_GAMES, builtinGameLabel, type BuiltinGame } from "@/lib/builtin-games";
+import {
+  BUILTIN_GAMES,
+  builtinGameLabel,
+  minCardsForBuiltinGame,
+  type BuiltinGame,
+} from "@/lib/builtin-games";
 import { LESSON_TYPES, lessonTypeLabel, type LessonType } from "@/lib/lesson-types";
 import type { GameCard, Lesson } from "@/types/course";
 import { useRouter } from "next/navigation";
@@ -70,8 +75,12 @@ function validateLessonForm(form: LessonForm): string | null {
     const cards = validGameCards(form.gameCards);
     if (form.gameSource === "quizlet") {
       if (!form.embedUrl.trim()) return "Quizlet lessons need an embed URL.";
-    } else if (cards.length < 2) {
-      return "Built-in games need at least 2 flashcards with both term and definition filled in.";
+    } else {
+      const minCards = minCardsForBuiltinGame(form.builtinGame);
+      if (cards.length < minCards) {
+        const label = builtinGameLabel(form.builtinGame);
+        return `${label} needs at least ${minCards} flashcards with both term and definition filled in.`;
+      }
     }
   }
 
@@ -382,6 +391,7 @@ export function LessonManager({ courseId, lessons }: Props) {
                 <GameCardsEditor
                   cards={form.gameCards}
                   disabled={disabled}
+                  minCards={minCardsForBuiltinGame(form.builtinGame)}
                   onChange={(gameCards) => patch({ gameCards })}
                 />
               </div>

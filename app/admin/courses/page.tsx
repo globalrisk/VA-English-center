@@ -6,6 +6,7 @@ import type { Course } from "@/types/course";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CourseAgeGroupEditor } from "./CourseAgeGroupEditor";
+import { AdminNavLink } from "@/components/admin/AdminNavLink";
 
 export default async function AdminCoursesPage() {
   const profile = await getCurrentProfile();
@@ -37,7 +38,9 @@ export default async function AdminCoursesPage() {
           </div>
 
           <p style={{ marginBottom: "1.5rem" }}>
-            <Link href="/admin/students" className="course-link">Manage students →</Link>
+            <AdminNavLink href="/admin/students" pendingLabel="Opening students">
+              Manage students →
+            </AdminNavLink>
           </p>
 
           {error && (

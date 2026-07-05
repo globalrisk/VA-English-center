@@ -1,6 +1,7 @@
 "use client";
 
 import { builtinGameLabel } from "@/lib/builtin-games";
+import { BlastGame } from "@/components/student/BlastGame";
 import { FlashcardFlipGame } from "@/components/student/FlashcardFlipGame";
 import { MatchPairsGame } from "@/components/student/MatchPairsGame";
 import { QuizChoiceGame } from "@/components/student/QuizChoiceGame";
@@ -47,6 +48,13 @@ export function BuiltinGamePlayer({ builtinGame, cards, embedUrl }: Props) {
         <div>
           <h2 className="builtin-game-heading">{heading}</h2>
           <MatchPairsGame cards={cards} />
+        </div>
+      );
+    case "blast":
+      return (
+        <div>
+          <h2 className="builtin-game-heading">{heading}</h2>
+          <BlastGame cards={cards} />
         </div>
       );
     default:

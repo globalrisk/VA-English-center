@@ -10,7 +10,9 @@ CREATE TYPE public.age_group AS ENUM (
   'young_adults'
 );
 
-CREATE TYPE public.lesson_type AS ENUM ('content', 'video', 'game');
+CREATE TYPE public.unit_kind AS ENUM ('vocabulary', 'reading', 'listening');
+
+CREATE TYPE public.lesson_type AS ENUM ('game', 'test');
 
 CREATE TYPE public.builtin_game AS ENUM ('flashcards', 'quiz', 'match', 'blast');
 
@@ -28,15 +30,25 @@ CREATE TABLE IF NOT EXISTS public.course_age_groups (
   PRIMARY KEY (course_id, age_group)
 );
 
+CREATE TABLE IF NOT EXISTS public.units (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  kind public.unit_kind NOT NULL,
+  order_index int NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (course_id, kind)
+);
+
 CREATE TABLE IF NOT EXISTS public.lessons (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  unit_id uuid NOT NULL REFERENCES public.units(id) ON DELETE CASCADE,
   title text NOT NULL,
   content text,
   image_url text,
   video_url text,
   order_index int NOT NULL DEFAULT 0,
-  lesson_type public.lesson_type NOT NULL DEFAULT 'content',
+  lesson_type public.lesson_type NOT NULL DEFAULT 'game',
   embed_url text,
   game_cards jsonb NOT NULL DEFAULT '[]'::jsonb,
   builtin_game public.builtin_game,
@@ -51,6 +63,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.course_age_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.units ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
@@ -85,6 +98,22 @@ CREATE POLICY "Students and admins can read course age groups"
     public.is_admin()
     OR age_group = (
       SELECT p.age_group FROM public.profiles p WHERE p.id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Students and admins can read units" ON public.units;
+CREATE POLICY "Students and admins can read units"
+  ON public.units FOR SELECT
+  TO authenticated
+  USING (
+    public.is_admin()
+    OR EXISTS (
+      SELECT 1
+      FROM public.courses c
+      INNER JOIN public.course_age_groups cag ON cag.course_id = c.id
+      INNER JOIN public.profiles p ON p.id = auth.uid()
+      WHERE c.id = units.course_id
+        AND cag.age_group = p.age_group
     )
   );
 
@@ -158,22 +187,17 @@ AND NOT EXISTS (
   WHERE cag.course_id = c.id AND cag.age_group = 'teens'
 );
 
-INSERT INTO public.lessons (course_id, title, content, order_index)
-SELECT id, 'Welcome!', 'Welcome to VA English Center. Start with this intro lesson.', 1
-FROM public.courses WHERE title = 'Kids English'
+-- Seed fixed units for seeded courses
+INSERT INTO public.units (course_id, kind, order_index)
+SELECT c.id, k.kind, k.order_index
+FROM public.courses c
+CROSS JOIN (
+  VALUES
+    ('vocabulary'::public.unit_kind, 1),
+    ('reading'::public.unit_kind, 2),
+    ('listening'::public.unit_kind, 3)
+) AS k(kind, order_index)
+WHERE c.title IN ('Kids English', 'Teen Exam Prep')
 AND NOT EXISTS (
-  SELECT 1 FROM public.lessons l
-  JOIN public.courses c ON c.id = l.course_id
-  WHERE c.title = 'Kids English' AND l.title = 'Welcome!'
-)
-LIMIT 1;
-
-INSERT INTO public.lessons (course_id, title, content, order_index)
-SELECT id, 'Alphabet & Sounds', 'Practice A–Z with fun examples and repetition.', 2
-FROM public.courses WHERE title = 'Kids English'
-AND NOT EXISTS (
-  SELECT 1 FROM public.lessons l
-  JOIN public.courses c ON c.id = l.course_id
-  WHERE c.title = 'Kids English' AND l.title = 'Alphabet & Sounds'
-)
-LIMIT 1;
+  SELECT 1 FROM public.units u WHERE u.course_id = c.id AND u.kind = k.kind
+);

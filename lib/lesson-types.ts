@@ -1,18 +1,13 @@
 export const LESSON_TYPES = [
   {
-    value: "content",
-    label: "Reading",
-    description: "Text and images for students to read",
-  },
-  {
-    value: "video",
-    label: "Video",
-    description: "Students watch a video lesson",
-  },
-  {
     value: "game",
     label: "Game",
-    description: "Flashcards or Quizlet-style practice",
+    description: "Flashcards, quizzes, match, Blast, or Quizlet practice",
+  },
+  {
+    value: "test",
+    label: "Test",
+    description: "Coming soon — assessment lesson",
   },
 ] as const;
 

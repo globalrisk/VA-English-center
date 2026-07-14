@@ -3,7 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { LessonPageContent } from "@/components/student/LessonPageContent";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { Course, Lesson } from "@/types/course";
+import type { Lesson } from "@/types/course";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -30,7 +30,7 @@ export default async function LessonDetailPage({ params }: PageProps) {
   const { data: lesson, error: lessonError } = await supabase
     .from("lessons")
     .select(
-      "id, course_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game"
+      "id, course_id, unit_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game"
     )
     .eq("id", lessonId)
     .eq("course_id", courseId)
@@ -40,17 +40,16 @@ export default async function LessonDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { data: allLessons } = await supabase
+  const typedLesson = lesson as Lesson;
+
+  const { data: unitLessons } = await supabase
     .from("lessons")
     .select("id, order_index")
-    .eq("course_id", courseId)
+    .eq("unit_id", typedLesson.unit_id)
     .order("order_index", { ascending: true });
 
   const lessonIndex =
-    (allLessons as Pick<Lesson, "id" | "order_index">[])?.findIndex((l) => l.id === lessonId) ?? 0;
-
-  const typedCourse = course as Course;
-  const typedLesson = lesson as Lesson;
+    (unitLessons as Pick<Lesson, "id" | "order_index">[])?.findIndex((l) => l.id === lessonId) ?? 0;
 
   return (
     <>
@@ -59,8 +58,11 @@ export default async function LessonDetailPage({ params }: PageProps) {
       <main className="section">
         <div className="container">
           <p style={{ marginBottom: "1.5rem" }}>
-            <Link href={`/student/course/${courseId}`} className="course-link">
-              ← Back to {typedCourse.title}
+            <Link
+              href={`/student/course/${courseId}/unit/${typedLesson.unit_id}`}
+              className="course-link"
+            >
+              ← Back to lessons
             </Link>
           </p>
 

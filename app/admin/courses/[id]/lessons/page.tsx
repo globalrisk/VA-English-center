@@ -2,7 +2,7 @@ import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { Course, Lesson } from "@/types/course";
+import type { Course, Lesson, Unit } from "@/types/course";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { LessonManager } from "./LessonManager";
@@ -31,10 +31,16 @@ export default async function AdminCourseLessonsPage({ params }: PageProps) {
     notFound();
   }
 
+  const { data: units, error: unitsError } = await supabase
+    .from("units")
+    .select("id, course_id, kind, order_index")
+    .eq("course_id", id)
+    .order("order_index", { ascending: true });
+
   const { data: lessons, error: lessonsError } = await supabase
     .from("lessons")
     .select(
-      "id, course_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game"
+      "id, course_id, unit_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game"
     )
     .eq("course_id", id)
     .order("order_index", { ascending: true });
@@ -49,25 +55,34 @@ export default async function AdminCourseLessonsPage({ params }: PageProps) {
         <div className="container">
           <div className="section-header">
             <span className="section-label">Admin · Lessons</span>
-            <h1 className="section-title">
-              {typedCourse.title}
-            </h1>
+            <h1 className="section-title">{typedCourse.title}</h1>
             <p className="section-sub">
-              Create, edit, and delete lessons for this course.
+              Add Game or Test lessons under Vocabulary, Reading, and Listening.
             </p>
           </div>
 
           <p style={{ marginBottom: "1.5rem" }}>
-            <Link href="/admin/courses" className="course-link">← Back to courses</Link>
+            <Link href="/admin/courses" className="course-link">
+              ← Back to courses
+            </Link>
           </p>
 
+          {unitsError && (
+            <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
+              Could not load units: {unitsError.message}
+            </p>
+          )}
           {lessonsError && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
               Could not load lessons: {lessonsError.message}
             </p>
           )}
 
-          <LessonManager courseId={id} lessons={(lessons as Lesson[]) ?? []} />
+          <LessonManager
+            courseId={id}
+            units={(units as Unit[]) ?? []}
+            lessons={(lessons as Lesson[]) ?? []}
+          />
         </div>
       </main>
     </>

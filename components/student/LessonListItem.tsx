@@ -14,11 +14,11 @@ type Props = {
 };
 
 function lessonBadgeLabel(lesson: Lesson): string {
-  const lessonType = lesson.lesson_type ?? "content";
-  if (lessonType !== "game") return lessonTypeLabel(lessonType);
+  const lessonType = lesson.lesson_type ?? "game";
+  if (lessonType === "test") return lessonTypeLabel("test");
   if (lesson.embed_url?.trim()) return "Quizlet";
   if (lesson.builtin_game) return builtinGameLabel(lesson.builtin_game);
-  return "Flashcards";
+  return "Game";
 }
 
 function OpenLessonLabel({ pending }: { pending: boolean }) {
@@ -53,7 +53,9 @@ export function LessonListItem({ courseId, lesson, index }: Props) {
       onClick={() => setPending(true)}
     >
       <span className="badge badge-yellow">{lessonBadgeLabel(lesson)}</span>
-      <h3>Lesson {index + 1}: {lesson.title}</h3>
+      <h3>
+        Lesson {index + 1}: {lesson.title}
+      </h3>
       {lesson.content && (
         <p style={{ color: "var(--ink-light)", marginTop: "0.5rem" }}>
           {lesson.content.length > 120 ? `${lesson.content.slice(0, 120)}…` : lesson.content}

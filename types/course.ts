@@ -1,15 +1,24 @@
 import type { AgeGroup } from "@/lib/age-groups";
 import type { BuiltinGame } from "@/lib/builtin-games";
 import type { LessonType } from "@/lib/lesson-types";
+import type { UnitKind } from "@/lib/units";
 
 export type GameCard = {
   term: string;
   definition: string;
 };
 
+export type Unit = {
+  id: string;
+  course_id: string;
+  kind: UnitKind;
+  order_index: number;
+};
+
 export type Lesson = {
   id: string;
   course_id: string;
+  unit_id: string;
   title: string;
   content: string | null;
   image_url: string | null;
@@ -32,6 +41,7 @@ export type Course = {
   cover_image_url: string | null;
   created_at: string;
   course_age_groups?: CourseAgeGroupRow[];
+  units?: Unit[];
   lessons?: Lesson[];
 };
 

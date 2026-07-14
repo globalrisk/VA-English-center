@@ -1,9 +1,9 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
-import { LessonListItem } from "@/components/student/LessonListItem";
+import { UnitListItem } from "@/components/student/UnitListItem";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { Course, Lesson } from "@/types/course";
+import type { Course, Lesson, Unit } from "@/types/course";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -27,14 +27,20 @@ export default async function CourseDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { data: lessons } = await supabase
-    .from("lessons")
-    .select("id, course_id, title, content, order_index, lesson_type, embed_url, builtin_game")
+  const { data: units } = await supabase
+    .from("units")
+    .select("id, course_id, kind, order_index")
     .eq("course_id", id)
     .order("order_index", { ascending: true });
 
+  const { data: lessons } = await supabase
+    .from("lessons")
+    .select("id, unit_id")
+    .eq("course_id", id);
+
   const typedCourse = course as Course;
-  const typedLessons = (lessons as Lesson[]) ?? [];
+  const typedUnits = ((units as Unit[]) ?? []).sort((a, b) => a.order_index - b.order_index);
+  const typedLessons = (lessons as Pick<Lesson, "id" | "unit_id">[]) ?? [];
 
   return (
     <>
@@ -50,23 +56,28 @@ export default async function CourseDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {typedLessons.length === 0 ? (
-            <p style={{ color: "var(--ink-light)" }}>Lessons coming soon.</p>
+          {typedUnits.length === 0 ? (
+            <p style={{ color: "var(--ink-light)" }}>Units coming soon.</p>
           ) : (
-            <div className="course-grid">
-              {typedLessons.map((lesson, index) => (
-                <LessonListItem
-                  key={lesson.id}
-                  courseId={id}
-                  lesson={lesson}
-                  index={index}
-                />
-              ))}
+            <div className="unit-grid">
+              {typedUnits.map((unit) => {
+                const lessonCount = typedLessons.filter((l) => l.unit_id === unit.id).length;
+                return (
+                  <UnitListItem
+                    key={unit.id}
+                    courseId={id}
+                    unit={unit}
+                    lessonCount={lessonCount}
+                  />
+                );
+              })}
             </div>
           )}
 
           <p style={{ marginTop: "2rem" }}>
-            <Link href="/student/courses" className="course-link">← All courses</Link>
+            <Link href="/student/courses" className="course-link">
+              ← All courses
+            </Link>
           </p>
         </div>
       </main>

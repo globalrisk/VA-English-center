@@ -10,12 +10,14 @@ import {
   type BuiltinGame,
 } from "@/lib/builtin-games";
 import { LESSON_TYPES, lessonTypeLabel, type LessonType } from "@/lib/lesson-types";
-import type { GameCard, Lesson } from "@/types/course";
+import { unitKindLabel } from "@/lib/units";
+import type { GameCard, Lesson, Unit } from "@/types/course";
 import { useRouter } from "next/navigation";
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 
 type Props = {
   courseId: string;
+  units: Unit[];
   lessons: Lesson[];
 };
 
@@ -41,9 +43,8 @@ type GameSource = "builtin" | "quizlet";
 type LessonForm = {
   title: string;
   content: string;
-  imageUrl: string;
-  videoUrl: string;
   orderIndex: string;
+  unitId: string;
   lessonType: LessonType;
   gameSource: GameSource;
   embedUrl: string;
@@ -51,25 +52,23 @@ type LessonForm = {
   gameCards: GameCard[];
 };
 
-const emptyForm = (): LessonForm => ({
-  title: "",
-  content: "",
-  imageUrl: "",
-  videoUrl: "",
-  orderIndex: "",
-  lessonType: "content",
-  gameSource: "builtin",
-  embedUrl: "",
-  builtinGame: "flashcards",
-  gameCards: [{ term: "", definition: "" }, { term: "", definition: "" }],
-});
+function emptyForm(defaultUnitId: string): LessonForm {
+  return {
+    title: "",
+    content: "",
+    orderIndex: "",
+    unitId: defaultUnitId,
+    lessonType: "game",
+    gameSource: "builtin",
+    embedUrl: "",
+    builtinGame: "flashcards",
+    gameCards: [{ term: "", definition: "" }, { term: "", definition: "" }],
+  };
+}
 
 function validateLessonForm(form: LessonForm): string | null {
   if (!form.title.trim()) return "Title is required.";
-
-  if (form.lessonType === "video" && !form.videoUrl.trim()) {
-    return "Video lessons need a video URL.";
-  }
+  if (!form.unitId) return "Unit is required.";
 
   if (form.lessonType === "game") {
     const cards = validGameCards(form.gameCards);
@@ -91,39 +90,46 @@ function rpcPayload(form: LessonForm, orderIndex: number | null) {
   const cards = validGameCards(form.gameCards);
   const useQuizlet = form.lessonType === "game" && form.gameSource === "quizlet";
   return {
+    lesson_unit_id: form.unitId,
     lesson_title: form.title.trim(),
     lesson_content: form.content.trim() || null,
-    lesson_image_url: form.imageUrl.trim() || null,
-    lesson_video_url: form.videoUrl.trim() || null,
+    lesson_image_url: null,
+    lesson_video_url: null,
     lesson_order_index: orderIndex,
     lesson_type: form.lessonType,
     lesson_embed_url: useQuizlet ? form.embedUrl.trim() : null,
-    lesson_game_cards: cards,
-    lesson_builtin_game: form.lessonType === "game" && !useQuizlet ? form.builtinGame : null,
+    lesson_game_cards: form.lessonType === "game" ? cards : [],
+    lesson_builtin_game:
+      form.lessonType === "game" && !useQuizlet ? form.builtinGame : null,
   };
 }
 
-export function LessonManager({ courseId, lessons }: Props) {
+export function LessonManager({ courseId, units, lessons }: Props) {
   const router = useRouter();
+  const sortedUnits = useMemo(
+    () => [...units].sort((a, b) => a.order_index - b.order_index),
+    [units]
+  );
+  const defaultUnitId =
+    sortedUnits.find((u) => u.kind === "vocabulary")?.id ?? sortedUnits[0]?.id ?? "";
+
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
-  const [newLesson, setNewLesson] = useState<LessonForm>(emptyForm());
-
+  const [newLesson, setNewLesson] = useState<LessonForm>(() => emptyForm(defaultUnitId));
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<LessonForm>(emptyForm());
+  const [editForm, setEditForm] = useState<LessonForm>(() => emptyForm(defaultUnitId));
 
   function lessonToForm(lesson: Lesson): LessonForm {
     const hasQuizlet = Boolean(lesson.embed_url?.trim());
     return {
       title: lesson.title,
       content: lesson.content ?? "",
-      imageUrl: lesson.image_url ?? "",
-      videoUrl: lesson.video_url ?? "",
       orderIndex: String(lesson.order_index),
-      lessonType: lesson.lesson_type ?? "content",
+      unitId: lesson.unit_id,
+      lessonType: lesson.lesson_type ?? "game",
       gameSource: hasQuizlet ? "quizlet" : "builtin",
       embedUrl: lesson.embed_url ?? "",
       builtinGame: lesson.builtin_game ?? "flashcards",
@@ -140,7 +146,7 @@ export function LessonManager({ courseId, lessons }: Props) {
 
   function cancelEdit() {
     setEditingId(null);
-    setEditForm(emptyForm());
+    setEditForm(emptyForm(defaultUnitId));
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -170,7 +176,7 @@ export function LessonManager({ courseId, lessons }: Props) {
       }
 
       setMessage(`Created lesson "${newLesson.title.trim()}".`);
-      setNewLesson(emptyForm());
+      setNewLesson(emptyForm(defaultUnitId));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not create lesson. Please try again.");
@@ -256,6 +262,22 @@ export function LessonManager({ courseId, lessons }: Props) {
     return (
       <>
         <div className="form-group">
+          <label htmlFor={`${idPrefix}-unit`}>Unit</label>
+          <select
+            id={`${idPrefix}-unit`}
+            value={form.unitId}
+            disabled={disabled}
+            onChange={(e) => patch({ unitId: e.target.value })}
+          >
+            {sortedUnits.map((unit) => (
+              <option key={unit.id} value={unit.id}>
+                {unitKindLabel(unit.kind)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
           <label htmlFor={`${idPrefix}-type`}>Lesson type</label>
           <select
             id={`${idPrefix}-type`}
@@ -270,60 +292,6 @@ export function LessonManager({ courseId, lessons }: Props) {
             ))}
           </select>
         </div>
-
-        {form.lessonType === "content" && (
-          <>
-            <div className="form-group">
-              <label htmlFor={`${idPrefix}-content`}>Content</label>
-              <textarea
-                id={`${idPrefix}-content`}
-                value={form.content}
-                onChange={(e) => patch({ content: e.target.value })}
-                rows={3}
-                disabled={disabled}
-                placeholder="Lesson text for students"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor={`${idPrefix}-image`}>Image URL</label>
-              <input
-                id={`${idPrefix}-image`}
-                type="url"
-                value={form.imageUrl}
-                onChange={(e) => patch({ imageUrl: e.target.value })}
-                disabled={disabled}
-                placeholder="https://..."
-              />
-            </div>
-          </>
-        )}
-
-        {form.lessonType === "video" && (
-          <>
-            <div className="form-group">
-              <label htmlFor={`${idPrefix}-video`}>Video URL</label>
-              <input
-                id={`${idPrefix}-video`}
-                type="url"
-                value={form.videoUrl}
-                onChange={(e) => patch({ videoUrl: e.target.value })}
-                disabled={disabled}
-                placeholder="YouTube or direct video link"
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor={`${idPrefix}-video-intro`}>Intro (optional)</label>
-              <textarea
-                id={`${idPrefix}-video-intro`}
-                value={form.content}
-                onChange={(e) => patch({ content: e.target.value })}
-                rows={2}
-                disabled={disabled}
-                placeholder="Short note before the video"
-              />
-            </div>
-          </>
-        )}
 
         {form.lessonType === "game" && (
           <>
@@ -410,7 +378,154 @@ export function LessonManager({ courseId, lessons }: Props) {
             </div>
           </>
         )}
+
+        {form.lessonType === "test" && (
+          <div className="form-group">
+            <label htmlFor={`${idPrefix}-test-intro`}>Notes (optional)</label>
+            <textarea
+              id={`${idPrefix}-test-intro`}
+              value={form.content}
+              onChange={(e) => patch({ content: e.target.value })}
+              rows={2}
+              disabled={disabled}
+              placeholder="Test content will be built later"
+            />
+            <p className="age-group-picker-hint" style={{ marginTop: "0.35rem" }}>
+              Test lessons are placeholders for now — students will see a coming-soon message.
+            </p>
+          </div>
+        )}
       </>
+    );
+  }
+
+  function renderLessonCard(lesson: Lesson, indexInUnit: number) {
+    const isEditing = editingId === lesson.id;
+    const isPending = pendingId === lesson.id;
+
+    return (
+      <article key={lesson.id} className="course-card" data-color="blue">
+        {isEditing ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleUpdate(lesson.id);
+            }}
+          >
+            <div className="form-group">
+              <label htmlFor={`edit-lesson-title-${lesson.id}`}>Title</label>
+              <input
+                id={`edit-lesson-title-${lesson.id}`}
+                type="text"
+                value={editForm.title}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, title: e.target.value }))
+                }
+                disabled={isPending}
+              />
+            </div>
+            {renderTypeFields(editForm, setEditForm, `edit-${lesson.id}`, isPending)}
+            <div className="form-group">
+              <label htmlFor={`edit-lesson-order-${lesson.id}`}>Order</label>
+              <input
+                id={`edit-lesson-order-${lesson.id}`}
+                type="number"
+                min={1}
+                value={editForm.orderIndex}
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, orderIndex: e.target.value }))
+                }
+                disabled={isPending}
+              />
+            </div>
+            <div className="course-card-actions">
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm btn-loading"
+                disabled={isPending || !editForm.title.trim()}
+              >
+                {isPending ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    Saving…
+                  </>
+                ) : (
+                  "Save changes"
+                )}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={isPending}
+                onClick={cancelEdit}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <span className="badge badge-yellow" style={{ marginBottom: "0.5rem" }}>
+              {lessonTypeLabel(lesson.lesson_type ?? "game")}
+            </span>
+            <h3>
+              Lesson {indexInUnit + 1}: {lesson.title}
+            </h3>
+            <p style={{ color: "var(--ink-light)", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
+              Order: {lesson.order_index}
+            </p>
+            {lesson.content && <p>{lesson.content}</p>}
+            {lesson.lesson_type === "game" && lesson.embed_url && (
+              <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>Quizlet embed</p>
+            )}
+            {lesson.lesson_type === "game" && !lesson.embed_url && lesson.builtin_game && (
+              <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>
+                Game: {builtinGameLabel(lesson.builtin_game)}
+                {validGameCards(normalizeGameCards(lesson.game_cards)).length > 0 &&
+                  ` · ${validGameCards(normalizeGameCards(lesson.game_cards)).length} cards`}
+              </p>
+            )}
+            {lesson.lesson_type === "test" && (
+              <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>
+                Test placeholder
+              </p>
+            )}
+            <div className="course-card-actions">
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={isPending}
+                onClick={() => startEdit(lesson)}
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger btn-sm btn-loading"
+                disabled={isPending}
+                onClick={() => handleDelete(lesson)}
+              >
+                {isPending ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    Deleting…
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </button>
+            </div>
+          </>
+        )}
+      </article>
+    );
+  }
+
+  if (sortedUnits.length === 0) {
+    return (
+      <p style={{ color: "var(--red-cta)" }}>
+        This course has no units. Re-create the course or run the units migration.
+      </p>
     );
   }
 
@@ -437,22 +552,26 @@ export function LessonManager({ courseId, lessons }: Props) {
             value={newLesson.title}
             onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })}
             required
-            placeholder="e.g. Alphabet & Sounds"
+            placeholder="e.g. Animals flashcards"
           />
         </div>
         {renderTypeFields(newLesson, setNewLesson, "new-lesson", creating)}
         <div className="form-group">
-          <label htmlFor="new-lesson-order">Order</label>
+          <label htmlFor="new-lesson-order">Order (within unit)</label>
           <input
             id="new-lesson-order"
             type="number"
             min={1}
             value={newLesson.orderIndex}
             onChange={(e) => setNewLesson({ ...newLesson, orderIndex: e.target.value })}
-            placeholder={`Auto (${lessons.length + 1})`}
+            placeholder="Auto"
           />
         </div>
-        <button type="submit" className="btn btn-primary btn-loading" disabled={creating || !newLesson.title.trim()}>
+        <button
+          type="submit"
+          className="btn btn-primary btn-loading"
+          disabled={creating || !newLesson.title.trim()}
+        >
           {creating ? (
             <>
               <LoadingSpinner size="sm" />
@@ -464,149 +583,32 @@ export function LessonManager({ courseId, lessons }: Props) {
         </button>
       </form>
 
-      <div className="course-grid">
-        {lessons.map((lesson, index) => {
-          const isEditing = editingId === lesson.id;
-          const isPending = pendingId === lesson.id;
+      {sortedUnits.map((unit) => {
+        const unitLessons = lessons
+          .filter((l) => l.unit_id === unit.id)
+          .sort((a, b) => a.order_index - b.order_index);
 
-          return (
-            <article key={lesson.id} className="course-card" data-color="blue">
-              {isEditing ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleUpdate(lesson.id);
-                  }}
-                >
-                  {error && (
-                    <p
-                      style={{
-                        color: "var(--red-cta)",
-                        marginBottom: "0.75rem",
-                        fontFamily: "var(--font-hand)",
-                      }}
-                    >
-                      {error}
-                    </p>
-                  )}
-                  <div className="form-group">
-                    <label htmlFor={`edit-lesson-title-${lesson.id}`}>Title</label>
-                    <input
-                      id={`edit-lesson-title-${lesson.id}`}
-                      type="text"
-                      value={editForm.title}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({ ...prev, title: e.target.value }))
-                      }
-                      disabled={isPending}
-                    />
-                  </div>
-                  {renderTypeFields(editForm, setEditForm, `edit-${lesson.id}`, isPending)}
-                  <div className="form-group">
-                    <label htmlFor={`edit-lesson-order-${lesson.id}`}>Order</label>
-                    <input
-                      id={`edit-lesson-order-${lesson.id}`}
-                      type="number"
-                      min={1}
-                      value={editForm.orderIndex}
-                      onChange={(e) =>
-                        setEditForm((prev) => ({ ...prev, orderIndex: e.target.value }))
-                      }
-                      disabled={isPending}
-                    />
-                  </div>
-                  <div className="course-card-actions">
-                    <button
-                      type="submit"
-                      className="btn btn-primary btn-sm btn-loading"
-                      disabled={isPending || !editForm.title.trim()}
-                    >
-                      {isPending ? (
-                        <>
-                          <LoadingSpinner size="sm" />
-                          Saving…
-                        </>
-                      ) : (
-                        "Save changes"
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      disabled={isPending}
-                      onClick={cancelEdit}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <>
-                  <span className="badge badge-yellow" style={{ marginBottom: "0.5rem" }}>
-                    {lessonTypeLabel(lesson.lesson_type ?? "content")}
-                  </span>
-                  <h3>Lesson {index + 1}: {lesson.title}</h3>
-                  <p style={{ color: "var(--ink-light)", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-                    Order: {lesson.order_index}
-                  </p>
-                  {lesson.content && <p>{lesson.content}</p>}
-                  {lesson.lesson_type === "video" && lesson.video_url && (
-                    <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>
-                      Video: {lesson.video_url}
-                    </p>
-                  )}
-                  {lesson.lesson_type === "game" && lesson.embed_url && (
-                    <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>
-                      Quizlet embed
-                    </p>
-                  )}
-                  {lesson.lesson_type === "game" && !lesson.embed_url && lesson.builtin_game && (
-                    <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>
-                      Game: {builtinGameLabel(lesson.builtin_game)}
-                      {validGameCards(normalizeGameCards(lesson.game_cards)).length > 0 &&
-                        ` · ${validGameCards(normalizeGameCards(lesson.game_cards)).length} cards`}
-                    </p>
-                  )}
-                  {lesson.lesson_type === "content" && lesson.image_url && (
-                    <p style={{ color: "var(--ink-light)", fontSize: "0.85rem", marginTop: "0.5rem" }}>
-                      Image: {lesson.image_url}
-                    </p>
-                  )}
-                  <div className="course-card-actions">
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-sm"
-                      disabled={isPending}
-                      onClick={() => startEdit(lesson)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-danger btn-sm btn-loading"
-                      disabled={isPending}
-                      onClick={() => handleDelete(lesson)}
-                    >
-                      {isPending ? (
-                        <>
-                          <LoadingSpinner size="sm" />
-                          Deleting…
-                        </>
-                      ) : (
-                        "Delete"
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
-            </article>
-          );
-        })}
-      </div>
-
-      {lessons.length === 0 && (
-        <p style={{ color: "var(--ink-light)" }}>No lessons yet. Add one above.</p>
-      )}
+        return (
+          <section key={unit.id} style={{ marginBottom: "2.5rem" }}>
+            <h2
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "1.5rem",
+                marginBottom: "1rem",
+              }}
+            >
+              {unitKindLabel(unit.kind)}
+            </h2>
+            {unitLessons.length === 0 ? (
+              <p style={{ color: "var(--ink-light)" }}>No lessons in this unit yet.</p>
+            ) : (
+              <div className="course-grid">
+                {unitLessons.map((lesson, index) => renderLessonCard(lesson, index))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }

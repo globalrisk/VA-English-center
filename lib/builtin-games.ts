@@ -8,7 +8,7 @@ export const BUILTIN_GAMES = [
   {
     value: "quiz",
     label: "Quick quiz",
-    description: "Multiple-choice questions like Quizlet",
+    description: "Multiple-choice questions",
     minCards: 2,
   },
   {
@@ -28,6 +28,31 @@ export const BUILTIN_GAMES = [
 export type BuiltinGame = (typeof BUILTIN_GAMES)[number]["value"];
 
 const DEFAULT_MIN_CARDS = 2;
+
+export function builtinGamesForUnit(unitKind: string) {
+  if (unitKind === "reading" || unitKind === "listening") {
+    return BUILTIN_GAMES.filter((game) => game.value === "flashcards");
+  }
+  return BUILTIN_GAMES;
+}
+
+export function isBuiltinGameAllowedInUnit(unitKind: string, game: BuiltinGame | string): boolean {
+  if (unitKind === "reading" || unitKind === "listening") {
+    return game === "flashcards";
+  }
+  return true;
+}
+
+export function normalizeBuiltinGameForUnit(
+  unitKind: string | null,
+  game: BuiltinGame | null | undefined
+): BuiltinGame {
+  const resolved = game ?? "flashcards";
+  if (unitKind === "reading" || unitKind === "listening") {
+    return "flashcards";
+  }
+  return resolved;
+}
 
 export function builtinGameLabel(value: BuiltinGame | string): string {
   return BUILTIN_GAMES.find((g) => g.value === value)?.label ?? value;

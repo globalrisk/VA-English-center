@@ -11,21 +11,9 @@ import type { GameCard } from "@/types/course";
 type Props = {
   builtinGame: BuiltinGame;
   cards: GameCard[];
-  embedUrl?: string | null;
 };
 
-export function BuiltinGamePlayer({ builtinGame, cards, embedUrl }: Props) {
-  if (embedUrl?.trim()) {
-    return (
-      <div>
-        <h2 className="builtin-game-heading">Quizlet</h2>
-        <div className="lesson-page-embed">
-          <iframe src={embedUrl} title="Quizlet game" allowFullScreen />
-        </div>
-      </div>
-    );
-  }
-
+export function BuiltinGamePlayer({ builtinGame, cards }: Props) {
   const heading = builtinGameLabel(builtinGame);
 
   switch (builtinGame) {

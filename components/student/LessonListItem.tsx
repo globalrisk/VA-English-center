@@ -16,7 +16,6 @@ type Props = {
 function lessonBadgeLabel(lesson: Lesson): string {
   const lessonType = lesson.lesson_type ?? "game";
   if (lessonType === "test") return lessonTypeLabel("test");
-  if (lesson.embed_url?.trim()) return "Quizlet";
   if (lesson.builtin_game) return builtinGameLabel(lesson.builtin_game);
   return "Game";
 }

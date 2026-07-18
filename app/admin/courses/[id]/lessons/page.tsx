@@ -40,7 +40,7 @@ export default async function AdminCourseLessonsPage({ params }: PageProps) {
   const { data: lessons, error: lessonsError } = await supabase
     .from("lessons")
     .select(
-      "id, course_id, unit_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game"
+      "id, course_id, unit_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game, test_content"
     )
     .eq("course_id", id)
     .order("order_index", { ascending: true });

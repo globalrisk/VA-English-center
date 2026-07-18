@@ -30,7 +30,7 @@ export default async function LessonDetailPage({ params }: PageProps) {
   const { data: lesson, error: lessonError } = await supabase
     .from("lessons")
     .select(
-      "id, course_id, unit_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game"
+      "id, course_id, unit_id, title, content, image_url, video_url, order_index, lesson_type, embed_url, game_cards, builtin_game, test_content"
     )
     .eq("id", lessonId)
     .eq("course_id", courseId)
@@ -51,13 +51,15 @@ export default async function LessonDetailPage({ params }: PageProps) {
   const lessonIndex =
     (unitLessons as Pick<Lesson, "id" | "order_index">[])?.findIndex((l) => l.id === lessonId) ?? 0;
 
+  const isTestLesson = typedLesson.lesson_type === "test";
+
   return (
     <>
       <Doodles />
       <Header variant="student" isAdmin={userIsAdmin} />
-      <main className="section">
-        <div className="container">
-          <p style={{ marginBottom: "1.5rem" }}>
+      <main className={`section ${isTestLesson ? "section-test" : ""}`}>
+        <div className={isTestLesson ? "container container-test" : "container"}>
+          <p style={{ marginBottom: isTestLesson ? "1rem" : "1.5rem" }}>
             <Link
               href={`/student/course/${courseId}/unit/${typedLesson.unit_id}`}
               className="course-link"

@@ -1,6 +1,7 @@
 import type { AgeGroup } from "@/lib/age-groups";
 import type { BuiltinGame } from "@/lib/builtin-games";
 import type { LessonType } from "@/lib/lesson-types";
+import type { TestContent } from "@/lib/test-content";
 import type { UnitKind } from "@/lib/units";
 
 export type GameCard = {
@@ -28,6 +29,7 @@ export type Lesson = {
   embed_url?: string | null;
   builtin_game?: BuiltinGame | null;
   game_cards?: GameCard[];
+  test_content?: TestContent | Record<string, unknown> | null;
 };
 
 export type CourseAgeGroupRow = {

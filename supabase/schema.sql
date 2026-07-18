@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS public.lessons (
   embed_url text,
   game_cards jsonb NOT NULL DEFAULT '[]'::jsonb,
   builtin_game public.builtin_game,
+  test_content jsonb NOT NULL DEFAULT '{}'::jsonb,
   created_at timestamptz DEFAULT now()
 );
 

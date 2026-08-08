@@ -1,15 +1,16 @@
 "use client";
 
 import { BuiltinGamePlayer } from "@/components/student/BuiltinGamePlayer";
-import { ReadingTestPlayer } from "@/components/student/ReadingTestPlayer";
+import { TestLessonEditor } from "@/components/student/TestLessonEditor";
 import { builtinGameLabel } from "@/lib/builtin-games";
 import { lessonTypeLabel } from "@/lib/lesson-types";
-import { countTestQuestions, normalizeTestContent } from "@/lib/test-content";
-import type { Lesson } from "@/types/course";
+import type { Lesson, TestAttempt } from "@/types/course";
 
 type Props = {
   lesson: Lesson;
   index: number;
+  isAdmin?: boolean;
+  testAttempt?: TestAttempt | null;
 };
 
 function gameActivityLabel(lesson: Lesson): string {
@@ -17,15 +18,15 @@ function gameActivityLabel(lesson: Lesson): string {
   return "Flashcards";
 }
 
-export function LessonPageContent({ lesson, index }: Props) {
+export function LessonPageContent({
+  lesson,
+  index,
+  isAdmin = false,
+  testAttempt = null,
+}: Props) {
   const lessonType = lesson.lesson_type ?? "game";
   const gameCards = lesson.game_cards ?? [];
   const builtinGame = lesson.builtin_game ?? "flashcards";
-  const testContent = normalizeTestContent(lesson.test_content);
-  const hasTestContent =
-    Boolean(testContent.passageTitle.trim()) &&
-    testContent.paragraphs.some((p) => p.text.trim()) &&
-    countTestQuestions(testContent) > 0;
 
   const activityBadge =
     lessonType === "game" ? gameActivityLabel(lesson) : lessonTypeLabel(lessonType);
@@ -50,13 +51,11 @@ export function LessonPageContent({ lesson, index }: Props) {
 
       {lessonType === "test" && (
         <div className="lesson-page-body">
-          {hasTestContent ? (
-            <ReadingTestPlayer content={testContent} />
-          ) : (
-            <p style={{ color: "var(--ink-light)", fontFamily: "var(--font-hand)" }}>
-              This test is not ready yet.
-            </p>
-          )}
+          <TestLessonEditor
+            lesson={lesson}
+            isAdmin={isAdmin}
+            initialAttempt={testAttempt}
+          />
         </div>
       )}
     </div>

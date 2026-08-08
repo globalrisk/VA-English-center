@@ -1374,6 +1374,12 @@ ul {
   border-color: var(--red-cta, #e24b4a);
 }
 
+.reading-test-mcq.is-retry-question {
+  border-color: #d49a00;
+  background: #fffaf0;
+  box-shadow: 0 0 0 2px rgba(255, 224, 138, 0.35);
+}
+
 .reading-test-mcq-prompt {
   display: flex;
   gap: 0.75rem;
@@ -1385,6 +1391,13 @@ ul {
   margin: 0;
   font-size: 1.15rem;
   line-height: 1.55;
+}
+
+.reading-test-select-hint {
+  margin: 0.25rem 0 0 !important;
+  font-size: 0.95rem !important;
+  color: var(--ink-light);
+  font-family: var(--font-hand);
 }
 
 .reading-test-q-num {
@@ -1421,6 +1434,14 @@ ul {
 
 .reading-test-mcq-option:hover {
   background: var(--paper, #fff4e5);
+}
+
+.reading-test-mcq-option:has(input:disabled) {
+  cursor: default;
+}
+
+.reading-test-mcq-option:has(input:disabled):hover {
+  background: transparent;
 }
 
 .reading-test-mcq-option.is-correct-option {
@@ -1463,14 +1484,701 @@ ul {
   border-top: 2px dashed var(--paper-dark);
 }
 
+.reading-test-attempt-guidance {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
 .reading-test-score {
   font-family: var(--font-display);
   font-size: 1.4rem;
   margin: 0;
 }
 
+.reading-test-attempt-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.8rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.95rem;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--yellow, #ffe08a);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.08);
+}
+
+.reading-test-attempt-status:empty {
+  display: none;
+}
+
+.reading-test-attempt-status strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.reading-test-attempt-status strong.is-urgent {
+  color: var(--red-cta, #e24b4a);
+}
+
+.reading-test-attempt-status span {
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+}
+
+.reading-test-attempt-status .reading-test-timeout-message,
+.reading-test-attempt-status .reading-test-attempt-error {
+  flex-basis: 100%;
+  color: var(--red-cta, #e24b4a);
+  font-weight: 600;
+}
+
+.reading-test-mcq.is-showing-location {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.08);
+}
+
+.reading-test-location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+}
+
+.reading-test-location-unavailable {
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+  font-size: 0.9rem;
+}
+
+.reading-test-location-details {
+  margin-top: 0.9rem;
+  padding: 1rem;
+  border: 2px dashed var(--paper-dark);
+  border-radius: 10px;
+  background: var(--paper, #fff4e5);
+}
+
+.reading-test-location-title {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+.reading-test-location-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0 0 0.9rem;
+  padding: 0.75rem 0.85rem;
+  border-left: 4px solid var(--yellow, #ffe08a);
+  background: #fff;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.reading-test-location-quote strong {
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+  color: var(--ink-light);
+}
+
+.reading-test-location-explanation {
+  padding-top: 0.1rem;
+}
+
+.reading-test-location-highlight {
+  padding: 0.08em 0.16em;
+  border-radius: 3px;
+  background: #9de8d9;
+  color: inherit;
+  box-shadow: 0 0 0 2px rgba(26, 155, 142, 0.25);
+  animation: reading-location-pulse 0.8s ease-out;
+}
+
+.reading-test-explain-answer {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.reading-test-explain-text {
+  white-space: pre-line;
+  font-size: 1.08rem;
+  line-height: 1.65;
+  color: var(--ink);
+}
+
+.reading-test-explain-empty {
+  margin: 0;
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+}
+
+@keyframes reading-location-pulse {
+  0% {
+    background: var(--yellow, #ffe08a);
+    box-shadow: 0 0 0 8px rgba(255, 224, 138, 0.35);
+  }
+  100% {
+    background: #9de8d9;
+    box-shadow: 0 0 0 2px rgba(26, 155, 142, 0.25);
+  }
+}
+
+/* ============================================
+   WYSIWYG Test editor (mirrors student split)
+   ============================================ */
+.test-editor-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--cream, #fff8f0);
+}
+
+@media (min-width: 900px) {
+  .test-editor-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0;
+  }
+}
+
+.test-editor-layout--full {
+  min-height: calc(100vh - 14rem);
+}
+
+@media (min-width: 900px) {
+  .test-editor-layout--full {
+    height: calc(100vh - 14rem);
+  }
+
+  .test-editor-layout--full .test-editor-passage,
+  .test-editor-layout--full .test-editor-questions {
+    height: 100%;
+    overflow-y: auto;
+  }
+}
+
+.test-editor-passage,
+.test-editor-questions {
+  padding: 1.75rem 1.85rem;
+  background: var(--cream, #fff8f0);
+}
+
+.test-editor-time-limit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.7rem;
+  border: 1.5px dashed var(--paper-dark);
+  border-radius: 9px;
+  font-family: var(--font-hand);
+}
+
+.test-editor-time-limit-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.test-editor-time-limit input {
+  width: 5rem;
+  padding: 0.3rem 0.45rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 7px;
+  background: #fff;
+  font: inherit;
+}
+
+@media (min-width: 900px) {
+  .test-editor-passage {
+    border-right: 2px solid var(--ink);
+  }
+}
+
+.test-editor-field {
+  width: 100%;
+  border: 1.5px dashed transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  padding: 0.15rem 0.35rem;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.test-editor-field:hover:not(:disabled) {
+  border-color: var(--paper-dark);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.test-editor-field:focus {
+  outline: none;
+  border-style: solid;
+  border-color: var(--ink);
+  background: #fff;
+}
+
+.test-editor-field:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.test-editor-field-title {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  min-height: 2.4rem;
+}
+
+.test-editor-paragraphs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.test-editor-paragraph {
+  position: relative;
+}
+
+.test-editor-paragraph-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.test-editor-field-label {
+  width: 2.4rem;
+  flex-shrink: 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.3rem;
+  padding: 0.1rem;
+}
+
+.test-editor-label-dot {
+  font-weight: 700;
+  font-size: 1.3rem;
+  line-height: 1.85;
+  flex-shrink: 0;
+}
+
+.test-editor-field-paragraph {
+  flex: 1;
+  min-height: 4.5rem;
+  margin-bottom: 0;
+}
+
+.test-editor-field-instruction {
+  width: 100%;
+  min-height: 2.8rem;
+  margin-bottom: 1rem;
+}
+
+.test-editor-field-prompt {
+  flex: 1;
+  min-height: 2.6rem;
+  font-size: 1.15rem;
+  line-height: 1.55;
+}
+
+.test-editor-field-option {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.1rem;
+  line-height: 1.45;
+}
+
+.test-editor-controls {
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-top: 0.25rem;
+}
+
+.test-editor-paragraph:hover .test-editor-controls,
+.test-editor-paragraph:focus-within .test-editor-controls,
+.test-editor-option:hover .test-editor-icon-btn,
+.test-editor-option:focus-within .test-editor-icon-btn {
+  opacity: 1;
+}
+
+.test-editor-option .test-editor-icon-btn {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.test-editor-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--red-cta, #e24b4a);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.test-editor-icon-btn:hover:not(:disabled) {
+  background: #ffe9e8;
+}
+
+.test-editor-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.test-editor-add {
+  margin-top: 1rem;
+}
+
+.test-editor-set-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.test-editor-set-header .reading-test-set-title {
+  margin-bottom: 0;
+}
+
+.test-editor-mcq {
+  position: relative;
+}
+
+.test-editor-choice-mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.test-editor-choice-mode label {
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.test-editor-choice-mode select {
+  max-width: 12rem;
+  padding: 0.3rem 0.55rem;
+  border: 1.5px solid var(--ink);
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+}
+
+.test-editor-choice-hint {
+  flex: 1 1 12rem;
+  font-family: var(--font-hand);
+  font-size: 0.9rem;
+  color: var(--ink-light);
+}
+
+.test-editor-explanation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.test-editor-explanation label {
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.test-editor-field-explanation {
+  min-height: 4.5rem;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.test-editor-selection-note {
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  background: rgba(255, 224, 138, 0.35);
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.test-editor-location {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1.5px dashed var(--paper-dark);
+}
+
+.test-editor-location-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.test-editor-location-heading > span {
+  margin-right: auto;
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+}
+
+.test-editor-answer-locations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.65rem;
+}
+
+.test-editor-answer-location {
+  padding: 0.65rem;
+  border: 1.5px solid var(--paper-dark);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.test-editor-answer-location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.test-editor-answer-location-actions > strong {
+  flex: 1 1 12rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.test-editor-location-clear {
+  border: 0;
+  background: transparent;
+  color: var(--red-cta, #e24b4a);
+  font: inherit;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.test-editor-location-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.65rem 0 0;
+  padding: 0.65rem 0.75rem;
+  border-left: 4px solid var(--yellow, #ffe08a);
+  background: #fff;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.test-editor-answer-location .test-editor-location-quote {
+  margin-top: 0.55rem;
+}
+
+.test-editor-location-quote strong {
+  font-family: var(--font-hand);
+  color: var(--ink-light);
+}
+
+.test-editor-location-empty {
+  margin: 0.55rem 0 0;
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+  font-size: 0.9rem;
+}
+
+.test-editor-mcq-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.test-editor-option {
+  cursor: pointer;
+}
+
+.test-editor-option.is-answer {
+  border-color: var(--blue-teal, #1a9b8e);
+  background: #e8faf7;
+}
+
+.test-editor-correct-badge {
+  flex-shrink: 0;
+  font-family: var(--font-hand);
+  font-size: 0.85rem;
+  color: var(--blue-teal, #1a9b8e);
+  font-weight: 600;
+}
+
+.student-test-scores {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 2px dashed var(--paper-dark);
+}
+
+.student-test-score-course {
+  margin: 0 0 0.35rem;
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+}
+
+.student-test-score-value {
+  margin: 0.75rem 0 0;
+  color: var(--blue-teal, #1a9b8e);
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+}
+
+.admin-student-scores {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1.5px dashed var(--paper-dark);
+}
+
+.admin-student-scores h4 {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.admin-student-scores ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-student-scores li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
+}
+
+.admin-student-scores li strong {
+  color: var(--blue-teal, #1a9b8e);
+}
+
+.admin-student-scores > p {
+  margin: 0;
+  color: var(--ink-light);
+  font-family: var(--font-hand);
+  font-size: 0.9rem;
+}
+
 .lesson-page-header {
   margin-bottom: 1.5rem;
+}
+
+.lesson-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.lesson-page-actions-hint {
+  font-family: var(--font-hand);
+  color: var(--ink-light);
+  font-size: 1rem;
+}
+
+.test-lesson-editor-bar {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 8;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 248, 240, 0.95);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-pill);
+  box-shadow: 3px 3px 0 var(--ink);
+  backdrop-filter: blur(4px);
+}
+
+.test-lesson-editor-bar-toggle {
+  display: inline-flex;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.test-lesson-editor-bar-toggle button {
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+  padding: 0.3rem 0.85rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.test-lesson-editor-bar-toggle button.is-active {
+  background: var(--yellow, #ffe08a);
+  font-weight: 700;
+}
+
+.test-lesson-editor-bar-toggle button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.test-lesson-editor-bar-msg {
+  margin: 0;
+  margin-left: auto;
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+}
+
+.test-lesson-editor-bar-msg.is-error {
+  color: var(--red-cta);
+}
+
+.test-lesson-editor-bar-msg.is-ok {
+  color: var(--blue-teal);
 }
 
 .lesson-page-body {

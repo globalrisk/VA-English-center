@@ -1,28 +1,54 @@
 "use client";
 
+import { AutoTextarea } from "@/components/ui/AutoTextarea";
 import {
-  countTestQuestions,
   emptyMultipleChoiceQuestion,
-  emptyMultipleChoiceSet,
   emptyOptions,
-  newQuestionSetId,
+  ensureSingleQuestionSet,
+  isOptionCorrect,
   optionLetter,
+  remapCorrectIndexesAfterOptionRemoval,
+  renumberTestContent,
+  setQuestionChoiceMode,
+  toggleCorrectOption,
+  withSingleQuestionSet,
+  type ChoiceMode,
   type MultipleChoiceQuestion,
   type MultipleChoiceSet,
+  type QuestionPassageLocation,
   type TestContent,
 } from "@/lib/test-content";
+import { useState } from "react";
 
 type Props = {
   value: TestContent;
   disabled?: boolean;
+  fullHeight?: boolean;
   onChange: (value: TestContent) => void;
 };
 
 const MIN_OPTIONS = 2;
 
-export function TestContentEditor({ value, disabled, onChange }: Props) {
+export function TestContentEditor({
+  value,
+  disabled,
+  fullHeight = false,
+  onChange,
+}: Props) {
+  const set = ensureSingleQuestionSet(value);
+  const [passageSelection, setPassageSelection] =
+    useState<QuestionPassageLocation | null>(null);
+
+  function emit(next: TestContent) {
+    onChange(renumberTestContent(next));
+  }
+
   function patch(updates: Partial<TestContent>) {
-    onChange({ ...value, ...updates });
+    emit({ ...value, ...updates });
+  }
+
+  function updateSet(next: MultipleChoiceSet) {
+    emit(withSingleQuestionSet(value, next));
   }
 
   function updateParagraph(index: number, field: "label" | "text", next: string) {
@@ -45,177 +71,114 @@ export function TestContentEditor({ value, disabled, onChange }: Props) {
     patch({ paragraphs: value.paragraphs.filter((_, i) => i !== index) });
   }
 
-  function updateSet(index: number, set: MultipleChoiceSet) {
-    patch({
-      questionSets: value.questionSets.map((item, i) => (i === index ? set : item)),
-    });
-  }
-
-  function addSet() {
-    const start = countTestQuestions(value) + 1;
-    const set: MultipleChoiceSet = {
-      ...emptyMultipleChoiceSet(start, 2),
-      id: newQuestionSetId(),
-    };
-    patch({ questionSets: [...value.questionSets, set] });
-  }
-
-  function removeSet(index: number) {
-    patch({ questionSets: value.questionSets.filter((_, i) => i !== index) });
-  }
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      <div className="form-group">
-        <label htmlFor="test-passage-title">Passage title</label>
+    <div
+      className={`test-editor-layout ${fullHeight ? "test-editor-layout--full" : ""}`}
+    >
+      <section className="test-editor-passage" aria-label="Passage editor">
+        <label className="test-editor-time-limit">
+          <span>First-attempt time limit</span>
+          <span className="test-editor-time-limit-control">
+            <input
+              type="number"
+              min={1}
+              max={240}
+              step={1}
+              value={value.timeLimitMinutes}
+              disabled={disabled}
+              aria-label="Test time limit in minutes"
+              onChange={(e) =>
+                patch({ timeLimitMinutes: Number(e.target.value) })
+              }
+            />
+            minutes
+          </span>
+        </label>
         <input
-          id="test-passage-title"
           type="text"
+          className="reading-test-passage-title test-editor-field test-editor-field-title"
           value={value.passageTitle}
           disabled={disabled}
-          placeholder="e.g. The History of the Bar Code"
+          placeholder="Passage title…"
+          aria-label="Passage title"
           onChange={(e) => patch({ passageTitle: e.target.value })}
         />
-      </div>
 
-      <div>
-        <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Passage paragraphs</p>
-        <p className="age-group-picker-hint" style={{ marginBottom: "0.75rem" }}>
-          Label paragraphs A, B, C… like an IELTS reading passage.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div className="test-editor-paragraphs">
           {value.paragraphs.map((paragraph, index) => (
-            <div
-              key={index}
-              style={{
-                padding: "0.75rem",
-                border: "2px dashed var(--paper-dark)",
-                borderRadius: "12px",
-              }}
-            >
-              <div className="form-group" style={{ marginBottom: "0.5rem" }}>
-                <label htmlFor={`para-label-${index}`}>Label</label>
+            <div key={index} className="test-editor-paragraph">
+              <div className="test-editor-paragraph-row">
                 <input
-                  id={`para-label-${index}`}
                   type="text"
+                  className="test-editor-field test-editor-field-label"
                   value={paragraph.label}
                   disabled={disabled}
-                  style={{ maxWidth: "6rem" }}
+                  aria-label={`Paragraph ${index + 1} label`}
                   onChange={(e) => updateParagraph(index, "label", e.target.value)}
                 />
-              </div>
-              <div className="form-group" style={{ marginBottom: "0.5rem" }}>
-                <label htmlFor={`para-text-${index}`}>Text</label>
-                <textarea
-                  id={`para-text-${index}`}
+                <span className="test-editor-label-dot" aria-hidden="true">
+                  .
+                </span>
+                <AutoTextarea
+                  className="reading-test-paragraph test-editor-field test-editor-field-paragraph"
                   value={paragraph.text}
                   disabled={disabled}
-                  rows={5}
+                  rows={3}
                   placeholder="Paragraph text…"
+                  aria-label={`Paragraph ${paragraph.label || index + 1} text`}
                   onChange={(e) => updateParagraph(index, "text", e.target.value)}
+                  onSelect={(e) => {
+                    const target = e.currentTarget;
+                    const text = target.value
+                      .slice(target.selectionStart, target.selectionEnd)
+                      .trim();
+                    if (!text) return;
+                    setPassageSelection({
+                      paragraphLabel: paragraph.label,
+                      text,
+                    });
+                  }}
                 />
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                disabled={disabled || value.paragraphs.length <= 1}
-                onClick={() => removeParagraph(index)}
-              >
-                Remove paragraph
-              </button>
+              <div className="test-editor-controls">
+                <button
+                  type="button"
+                  className="test-editor-icon-btn"
+                  disabled={disabled || value.paragraphs.length <= 1}
+                  title="Remove paragraph"
+                  aria-label="Remove paragraph"
+                  onClick={() => removeParagraph(index)}
+                >
+                  ×
+                </button>
+              </div>
             </div>
           ))}
         </div>
+
         <button
           type="button"
-          className="btn btn-secondary btn-sm"
-          style={{ marginTop: "0.75rem" }}
+          className="btn btn-secondary btn-sm test-editor-add"
           disabled={disabled}
           onClick={addParagraph}
         >
           + Add paragraph
         </button>
-      </div>
-
-      <div>
-        <p style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Multiple-choice questions</p>
-        <p className="age-group-picker-hint" style={{ marginBottom: "0.75rem" }}>
-          Each question needs a prompt, at least two options, and one correct answer.
+        <p className="test-editor-selection-note" aria-live="polite">
+          {passageSelection
+            ? `Selected from paragraph ${passageSelection.paragraphLabel || "?"}: “${passageSelection.text}”`
+            : "Select text in a passage paragraph, then map it to a question."}
         </p>
+      </section>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {value.questionSets.map((set, setIndex) => (
-            <div
-              key={set.id}
-              style={{
-                padding: "0.85rem",
-                border: "2px solid var(--paper-dark)",
-                borderRadius: "12px",
-                background: "var(--paper)",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "0.5rem",
-                  marginBottom: "0.75rem",
-                  alignItems: "center",
-                }}
-              >
-                <span className="badge badge-yellow">Multiple choice</span>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  disabled={disabled}
-                  onClick={() => removeSet(setIndex)}
-                >
-                  Remove set
-                </button>
-              </div>
-
-              <div className="form-group">
-                <label>Range label</label>
-                <input
-                  type="text"
-                  value={set.rangeLabel}
-                  disabled={disabled}
-                  onChange={(e) =>
-                    updateSet(setIndex, { ...set, rangeLabel: e.target.value })
-                  }
-                />
-              </div>
-              <div className="form-group">
-                <label>Instructions</label>
-                <textarea
-                  value={set.instruction}
-                  disabled={disabled}
-                  rows={2}
-                  onChange={(e) =>
-                    updateSet(setIndex, { ...set, instruction: e.target.value })
-                  }
-                />
-              </div>
-
-              <MultipleChoiceQuestionsEditor
-                set={set}
-                disabled={disabled}
-                onChange={(next) => updateSet(setIndex, next)}
-              />
-            </div>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          style={{ marginTop: "0.75rem" }}
+      <section className="test-editor-questions" aria-label="Questions editor">
+        <MultipleChoiceQuestionsEditor
+          set={set}
           disabled={disabled}
-          onClick={addSet}
-        >
-          + Add question set
-        </button>
-      </div>
+          passageSelection={passageSelection}
+          onChange={updateSet}
+        />
+      </section>
     </div>
   );
 }
@@ -223,10 +186,12 @@ export function TestContentEditor({ value, disabled, onChange }: Props) {
 function MultipleChoiceQuestionsEditor({
   set,
   disabled,
+  passageSelection,
   onChange,
 }: {
   set: MultipleChoiceSet;
   disabled?: boolean;
+  passageSelection: QuestionPassageLocation | null;
   onChange: (set: MultipleChoiceSet) => void;
 }) {
   function updateQuestion(index: number, question: MultipleChoiceQuestion) {
@@ -254,132 +219,227 @@ function MultipleChoiceQuestionsEditor({
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+    <div className="reading-test-mcq-list">
       {set.questions.map((question, index) => (
-        <div
-          key={`${set.id}-q-${index}`}
-          style={{
-            padding: "0.65rem",
-            border: "1px dashed var(--paper-dark)",
-            borderRadius: "10px",
-          }}
-        >
-          <div
-            className="form-group"
-            style={{
-              marginBottom: "0.5rem",
-              display: "grid",
-              gridTemplateColumns: "4rem 1fr",
-              gap: "0.5rem",
-              alignItems: "center",
-            }}
-          >
-            <label>No.</label>
-            <input
-              type="number"
-              min={1}
-              value={question.number}
-              disabled={disabled}
-              onChange={(e) =>
-                updateQuestion(index, {
-                  ...question,
-                  number: Number(e.target.value) || 1,
-                })
-              }
-            />
-          </div>
-
-          <div className="form-group" style={{ marginBottom: "0.5rem" }}>
-            <label>Question</label>
-            <textarea
+        <div key={`q-${index}`} className="reading-test-mcq test-editor-mcq">
+          <div className="reading-test-mcq-prompt">
+            <span className="reading-test-q-num">{question.number}</span>
+            <AutoTextarea
+              className="test-editor-field test-editor-field-prompt"
               value={question.prompt}
               disabled={disabled}
               rows={2}
               placeholder="Question about the passage…"
+              aria-label={`Question ${question.number}`}
               onChange={(e) =>
                 updateQuestion(index, { ...question, prompt: e.target.value })
               }
             />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
-            {question.options.map((option, optionIndex) => (
-              <div
-                key={optionIndex}
-                className="form-group"
-                style={{
-                  marginBottom: 0,
-                  display: "grid",
-                  gridTemplateColumns: "2rem 1fr auto",
-                  gap: "0.5rem",
-                  alignItems: "center",
-                }}
-              >
-                <label htmlFor={`opt-${set.id}-${index}-${optionIndex}`}>
-                  {optionLetter(optionIndex)}
-                </label>
-                <input
-                  id={`opt-${set.id}-${index}-${optionIndex}`}
-                  type="text"
-                  value={option}
-                  disabled={disabled}
-                  placeholder={`Option ${optionLetter(optionIndex)}`}
-                  onChange={(e) =>
-                    updateQuestion(index, {
-                      ...question,
-                      options: question.options.map((opt, i) =>
-                        i === optionIndex ? e.target.value : opt
-                      ),
-                    })
-                  }
-                />
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  disabled={disabled || question.options.length <= MIN_OPTIONS}
-                  onClick={() => {
-                    const nextOptions = question.options.filter((_, i) => i !== optionIndex);
-                    let correctOptionIndex = question.correctOptionIndex;
-                    if (optionIndex === correctOptionIndex) correctOptionIndex = 0;
-                    else if (optionIndex < correctOptionIndex) correctOptionIndex -= 1;
-                    updateQuestion(index, {
-                      ...question,
-                      options: nextOptions.length >= MIN_OPTIONS ? nextOptions : emptyOptions(MIN_OPTIONS),
-                      correctOptionIndex: Math.min(
-                        correctOptionIndex,
-                        Math.max(nextOptions.length - 1, 0)
-                      ),
-                    });
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
+          <div className="test-editor-choice-mode">
+            <label htmlFor={`choice-mode-${index}`}>Answer type</label>
+            <select
+              id={`choice-mode-${index}`}
+              value={question.choiceMode}
+              disabled={disabled}
+              onChange={(e) =>
+                updateQuestion(
+                  index,
+                  setQuestionChoiceMode(question, e.target.value as ChoiceMode)
+                )
+              }
+            >
+              <option value="single">Single choice</option>
+              <option value="multiple">Multiple choice</option>
+            </select>
+            <span className="test-editor-choice-hint">
+              {question.choiceMode === "multiple"
+                ? "Mark every correct option (students pick all that apply)."
+                : "Mark exactly one correct option."}
+            </span>
           </div>
 
-          <div className="form-group" style={{ marginTop: "0.65rem", marginBottom: "0.5rem" }}>
-            <label>Correct answer</label>
-            <select
-              value={question.correctOptionIndex}
+          <div
+            className="reading-test-mcq-options"
+            role={question.choiceMode === "single" ? "radiogroup" : "group"}
+            aria-label={`Correct answers for question ${question.number}`}
+          >
+            {question.options.map((option, optionIndex) => {
+              const isCorrect = isOptionCorrect(question, optionIndex);
+              return (
+                <label
+                  key={optionIndex}
+                  className={`reading-test-mcq-option test-editor-option ${isCorrect ? "is-answer" : ""}`}
+                >
+                  <input
+                    type={question.choiceMode === "single" ? "radio" : "checkbox"}
+                    name={
+                      question.choiceMode === "single"
+                        ? `correct-${index}`
+                        : undefined
+                    }
+                    checked={isCorrect}
+                    disabled={disabled}
+                    onChange={() =>
+                      updateQuestion(index, toggleCorrectOption(question, optionIndex))
+                    }
+                  />
+                  <span className="reading-test-mcq-letter">
+                    {optionLetter(optionIndex)}
+                  </span>
+                  <input
+                    type="text"
+                    className="test-editor-field test-editor-field-option"
+                    value={option}
+                    disabled={disabled}
+                    placeholder={`Option ${optionLetter(optionIndex)}`}
+                    aria-label={`Question ${question.number} option ${optionLetter(optionIndex)}`}
+                    onChange={(e) =>
+                      updateQuestion(index, {
+                        ...question,
+                        options: question.options.map((opt, i) =>
+                          i === optionIndex ? e.target.value : opt
+                        ),
+                      })
+                    }
+                  />
+                  {isCorrect && (
+                    <span className="test-editor-correct-badge" aria-hidden="true">
+                      Correct
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    className="test-editor-icon-btn"
+                    disabled={disabled || question.options.length <= MIN_OPTIONS}
+                    title="Remove option"
+                    aria-label={`Remove option ${optionLetter(optionIndex)}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const nextOptions = question.options.filter(
+                        (_, i) => i !== optionIndex
+                      );
+                      updateQuestion(index, {
+                        ...question,
+                        options:
+                          nextOptions.length >= MIN_OPTIONS
+                            ? nextOptions
+                            : emptyOptions(MIN_OPTIONS),
+                        answerLocations:
+                          nextOptions.length >= MIN_OPTIONS
+                            ? question.answerLocations.filter(
+                                (_, i) => i !== optionIndex
+                              )
+                            : Array.from(
+                                { length: MIN_OPTIONS },
+                                () => null
+                              ),
+                        correctOptionIndexes: remapCorrectIndexesAfterOptionRemoval(
+                          question,
+                          optionIndex
+                        ),
+                      });
+                    }}
+                  >
+                    ×
+                  </button>
+                </label>
+              );
+            })}
+          </div>
+
+          <div className="test-editor-explanation">
+            <label htmlFor={`explanation-${index}`}>Answer explanation</label>
+            <AutoTextarea
+              id={`explanation-${index}`}
+              className="test-editor-field test-editor-field-explanation"
+              value={question.explanation}
               disabled={disabled}
+              rows={3}
+              placeholder="Optional: walk students through the answer after they finish…"
+              aria-label={`Question ${question.number} explanation`}
               onChange={(e) =>
                 updateQuestion(index, {
                   ...question,
-                  correctOptionIndex: Number(e.target.value) || 0,
+                  explanation: e.target.value,
                 })
               }
-            >
-              {question.options.map((option, optionIndex) => (
-                <option key={optionIndex} value={optionIndex}>
-                  {optionLetter(optionIndex)}
-                  {option.trim() ? ` — ${option.trim()}` : ""}
-                </option>
-              ))}
-            </select>
+            />
           </div>
 
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          <div className="test-editor-location">
+            <div className="test-editor-location-heading">
+              <span>Correct-answer passage mappings</span>
+            </div>
+            <div className="test-editor-answer-locations">
+              {question.correctOptionIndexes.map((optionIndex) => {
+                const location = question.answerLocations[optionIndex];
+                return (
+                  <div
+                    key={optionIndex}
+                    className="test-editor-answer-location"
+                  >
+                    <div className="test-editor-answer-location-actions">
+                      <strong>
+                        Answer {optionLetter(optionIndex)} —{" "}
+                        {question.options[optionIndex] || "Empty option"}
+                      </strong>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        disabled={disabled || !passageSelection}
+                        onClick={() => {
+                          if (!passageSelection) return;
+                          updateQuestion(index, {
+                            ...question,
+                            answerLocations: question.answerLocations.map(
+                              (item, i) =>
+                                i === optionIndex ? passageSelection : item
+                            ),
+                          });
+                        }}
+                      >
+                        Use selected passage text
+                      </button>
+                      {location && (
+                        <button
+                          type="button"
+                          className="test-editor-location-clear"
+                          disabled={disabled}
+                          onClick={() =>
+                            updateQuestion(index, {
+                              ...question,
+                              answerLocations: question.answerLocations.map(
+                                (item, i) => (i === optionIndex ? null : item)
+                              ),
+                            })
+                          }
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {location ? (
+                      <blockquote className="test-editor-location-quote">
+                        <strong>
+                          Paragraph {location.paragraphLabel || "?"}
+                        </strong>
+                        <span>“{location.text}”</span>
+                      </blockquote>
+                    ) : (
+                      <p className="test-editor-location-empty">
+                        No passage text mapped to answer{" "}
+                        {optionLetter(optionIndex)}.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="test-editor-mcq-actions">
             <button
               type="button"
               className="btn btn-secondary btn-sm"
@@ -388,6 +448,7 @@ function MultipleChoiceQuestionsEditor({
                 updateQuestion(index, {
                   ...question,
                   options: [...question.options, ""],
+                  answerLocations: [...question.answerLocations, null],
                 })
               }
             >
@@ -404,6 +465,7 @@ function MultipleChoiceQuestionsEditor({
           </div>
         </div>
       ))}
+
       <button
         type="button"
         className="btn btn-secondary btn-sm"

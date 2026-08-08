@@ -58,6 +58,24 @@ export type Profile = {
   created_at: string;
 };
 
+export type TestAttempt = {
+  id: string;
+  student_id: string;
+  lesson_id: string;
+  started_at: string;
+  time_limit_minutes: number;
+  submitted_at: string | null;
+  correct_count: number | null;
+  total_questions: number | null;
+  percentage: number | null;
+  elapsed_seconds: number | null;
+};
+
+export type TestScoreSummary = TestAttempt & {
+  lesson_title: string;
+  course_title: string;
+};
+
 export type StudentDirectoryRow = {
   id: string;
   email: string;

@@ -3,7 +3,15 @@ import { Header } from "@/components/layout/Header";
 import { ageGroupLabel } from "@/lib/age-groups";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
+import type { TestAttempt } from "@/types/course";
 import Link from "next/link";
+
+type AttemptWithLesson = TestAttempt & {
+  lessons: {
+    title: string;
+    courses: { title: string };
+  };
+};
 
 export default async function StudentDashboard() {
   const supabase = await createClient();
@@ -13,6 +21,19 @@ export default async function StudentDashboard() {
 
   const profile = await getCurrentProfile();
   const userIsAdmin = isAdmin(profile);
+  let testScores: AttemptWithLesson[] = [];
+
+  if (profile && !userIsAdmin) {
+    const { data } = await supabase
+      .from("test_attempts")
+      .select(
+        "id, student_id, lesson_id, started_at, time_limit_minutes, submitted_at, correct_count, total_questions, percentage, elapsed_seconds, lessons!inner(title, courses!inner(title))"
+      )
+      .eq("student_id", profile.id)
+      .not("submitted_at", "is", null)
+      .order("submitted_at", { ascending: false });
+    testScores = (data as unknown as AttemptWithLesson[]) ?? [];
+  }
 
   return (
     <>
@@ -54,8 +75,44 @@ export default async function StudentDashboard() {
               <a href="/#contact" className="course-link">Contact us →</a>
             </article>
           </div>
+
+          {!userIsAdmin && (
+            <section className="student-test-scores">
+              <div className="section-header">
+                <span className="section-label">Permanent results</span>
+                <h2 className="section-title">My Test Scores</h2>
+              </div>
+              {testScores.length > 0 ? (
+                <div className="course-grid">
+                  {testScores.map((attempt) => (
+                    <article
+                      key={attempt.id}
+                      className="course-card student-test-score-card"
+                      data-color="yellow"
+                    >
+                      <p className="student-test-score-course">
+                        {attempt.lessons.courses.title}
+                      </p>
+                      <h3>{attempt.lessons.title}</h3>
+                      <p className="student-test-score-value">
+                        {attempt.correct_count}/{attempt.total_questions} (
+                        {formatPercentage(attempt.percentage)}%)
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="section-sub">No submitted test scores yet.</p>
+              )}
+            </section>
+          )}
         </div>
       </main>
     </>
   );
+}
+
+function formatPercentage(value: number | null) {
+  const numeric = Number(value ?? 0);
+  return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(2);
 }

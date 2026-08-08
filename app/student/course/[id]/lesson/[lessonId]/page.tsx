@@ -3,7 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { LessonPageContent } from "@/components/student/LessonPageContent";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { Lesson } from "@/types/course";
+import type { Lesson, TestAttempt } from "@/types/course";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -52,6 +52,19 @@ export default async function LessonDetailPage({ params }: PageProps) {
     (unitLessons as Pick<Lesson, "id" | "order_index">[])?.findIndex((l) => l.id === lessonId) ?? 0;
 
   const isTestLesson = typedLesson.lesson_type === "test";
+  let testAttempt: TestAttempt | null = null;
+
+  if (isTestLesson && profile && !userIsAdmin) {
+    const { data } = await supabase
+      .from("test_attempts")
+      .select(
+        "id, student_id, lesson_id, started_at, time_limit_minutes, submitted_at, correct_count, total_questions, percentage, elapsed_seconds"
+      )
+      .eq("student_id", profile.id)
+      .eq("lesson_id", lessonId)
+      .maybeSingle();
+    testAttempt = (data as TestAttempt | null) ?? null;
+  }
 
   return (
     <>
@@ -68,7 +81,12 @@ export default async function LessonDetailPage({ params }: PageProps) {
             </Link>
           </p>
 
-          <LessonPageContent lesson={typedLesson} index={lessonIndex} />
+          <LessonPageContent
+            lesson={typedLesson}
+            index={lessonIndex}
+            isAdmin={userIsAdmin}
+            testAttempt={testAttempt}
+          />
         </div>
       </main>
     </>

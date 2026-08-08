@@ -3,15 +3,16 @@
 import { AGE_GROUPS, ageGroupLabel, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import type { StudentDirectoryRow } from "@/types/course";
+import type { StudentDirectoryRow, TestScoreSummary } from "@/types/course";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Props = {
   students: StudentDirectoryRow[];
+  testScores: TestScoreSummary[];
 };
 
-export function StudentAgeGroupEditor({ students }: Props) {
+export function StudentAgeGroupEditor({ students, testScores }: Props) {
   const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,33 +56,58 @@ export function StudentAgeGroupEditor({ students }: Props) {
       <div className="course-grid">
         {students
           .filter((student) => student.role === "student")
-          .map((student) => (
-          <article key={student.id} className="course-card" data-color="yellow">
-            <h3>{student.email}</h3>
-            <p style={{ color: "var(--ink-light)", marginBottom: "0.75rem" }}>
-              Current: <strong>{ageGroupLabel(student.age_group)}</strong>
-            </p>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label htmlFor={`age-${student.id}`}>Age group</label>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <select
-                  id={`age-${student.id}`}
-                  value={student.age_group}
-                  disabled={pendingId === student.id}
-                  onChange={(e) => handleChange(student.id, e.target.value as AgeGroup)}
-                  style={{ flex: 1 }}
-                >
-                  {AGE_GROUPS.map((group) => (
-                    <option key={group.value} value={group.value}>
-                      {group.label} ({group.description})
-                    </option>
-                  ))}
-                </select>
-                {pendingId === student.id && <LoadingSpinner size="sm" label="Updating age group" />}
-              </div>
-            </div>
-          </article>
-        ))}
+          .map((student) => {
+            const scores = testScores.filter(
+              (score) => score.student_id === student.id
+            );
+            return (
+              <article key={student.id} className="course-card" data-color="yellow">
+                <h3>{student.email}</h3>
+                <p style={{ color: "var(--ink-light)", marginBottom: "0.75rem" }}>
+                  Current: <strong>{ageGroupLabel(student.age_group)}</strong>
+                </p>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label htmlFor={`age-${student.id}`}>Age group</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <select
+                      id={`age-${student.id}`}
+                      value={student.age_group}
+                      disabled={pendingId === student.id}
+                      onChange={(e) => handleChange(student.id, e.target.value as AgeGroup)}
+                      style={{ flex: 1 }}
+                    >
+                      {AGE_GROUPS.map((group) => (
+                        <option key={group.value} value={group.value}>
+                          {group.label} ({group.description})
+                        </option>
+                      ))}
+                    </select>
+                    {pendingId === student.id && <LoadingSpinner size="sm" label="Updating age group" />}
+                  </div>
+                </div>
+                <div className="admin-student-scores">
+                  <h4>Permanent test scores</h4>
+                  {scores.length > 0 ? (
+                    <ul>
+                      {scores.map((score) => (
+                        <li key={score.id}>
+                          <span>
+                            {score.course_title} · {score.lesson_title}
+                          </span>
+                          <strong>
+                            {score.correct_count}/{score.total_questions} (
+                            {formatPercentage(score.percentage)}%)
+                          </strong>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No submitted tests.</p>
+                  )}
+                </div>
+              </article>
+            );
+          })}
       </div>
 
       {students.some((s) => s.role === "admin") && (
@@ -95,4 +121,9 @@ export function StudentAgeGroupEditor({ students }: Props) {
       )}
     </div>
   );
+}
+
+function formatPercentage(value: number | null) {
+  const numeric = Number(value ?? 0);
+  return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(2);
 }

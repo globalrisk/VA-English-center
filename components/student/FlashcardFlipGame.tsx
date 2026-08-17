@@ -2,19 +2,22 @@
 
 import type { GameCard } from "@/types/course";
 import { canSpeak, speakEnglish, stopSpeaking } from "@/lib/speech";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   cards: GameCard[];
+  onComplete?: () => void | Promise<void>;
 };
 
-export function FlashcardFlipGame({ cards }: Props) {
+export function FlashcardFlipGame({ cards, onComplete }: Props) {
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
   );
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const viewedIndexesRef = useRef<Set<number>>(new Set([0]));
+  const completionSentRef = useRef(false);
   const speechSupported = canSpeak();
 
   const current = validCards[index];
@@ -22,6 +25,25 @@ export function FlashcardFlipGame({ cards }: Props) {
   useEffect(() => {
     return () => stopSpeaking();
   }, []);
+
+  useEffect(() => {
+    setIndex(0);
+    setFlipped(false);
+    viewedIndexesRef.current = new Set([0]);
+    completionSentRef.current = false;
+  }, [validCards]);
+
+  useEffect(() => {
+    viewedIndexesRef.current.add(index);
+    if (
+      validCards.length > 0 &&
+      viewedIndexesRef.current.size >= validCards.length &&
+      !completionSentRef.current
+    ) {
+      completionSentRef.current = true;
+      void onComplete?.();
+    }
+  }, [index, onComplete, validCards.length]);
 
   useEffect(() => {
     if (!speechSupported || flipped || !current) return;

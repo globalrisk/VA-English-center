@@ -11,6 +11,7 @@ type Props = {
   courseId: string;
   lesson: Lesson;
   index: number;
+  completed?: boolean;
 };
 
 function lessonBadgeLabel(lesson: Lesson): string {
@@ -20,7 +21,7 @@ function lessonBadgeLabel(lesson: Lesson): string {
   return "Game";
 }
 
-function OpenLessonLabel({ pending }: { pending: boolean }) {
+function OpenLessonLabel({ pending, completed }: { pending: boolean; completed: boolean }) {
   if (pending) {
     return (
       <span
@@ -35,23 +36,24 @@ function OpenLessonLabel({ pending }: { pending: boolean }) {
 
   return (
     <span className="course-link" style={{ marginTop: "0.75rem", display: "inline-block" }}>
-      Open lesson →
+      {completed ? "Review lesson →" : "Open lesson →"}
     </span>
   );
 }
 
-export function LessonListItem({ courseId, lesson, index }: Props) {
+export function LessonListItem({ courseId, lesson, index, completed = false }: Props) {
   const [pending, setPending] = useState(false);
   const href = `/student/course/${courseId}/lesson/${lesson.id}`;
 
   return (
     <Link
       href={href}
-      className="course-card lesson-list-card"
+      className={`course-card lesson-list-card${completed ? " is-complete" : ""}`}
       data-color="blue"
       onClick={() => setPending(true)}
     >
       <span className="badge badge-yellow">{lessonBadgeLabel(lesson)}</span>
+      {completed ? <span className="lesson-complete-badge">✓ Completed</span> : null}
       <h3>
         Lesson {index + 1}: {lesson.title}
       </h3>
@@ -60,7 +62,7 @@ export function LessonListItem({ courseId, lesson, index }: Props) {
           {lesson.content.length > 120 ? `${lesson.content.slice(0, 120)}…` : lesson.content}
         </p>
       )}
-      <OpenLessonLabel pending={pending} />
+      <OpenLessonLabel pending={pending} completed={completed} />
     </Link>
   );
 }

@@ -1,5 +1,6 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type {
@@ -7,8 +8,6 @@ import type {
   TestAttempt,
   TestScoreSummary,
 } from "@/types/course";
-import { AdminNavLink } from "@/components/admin/AdminNavLink";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StudentAgeGroupEditor } from "./StudentAgeGroupEditor";
 
@@ -47,24 +46,19 @@ export default async function AdminStudentsPage() {
   return (
     <>
       <Doodles />
-      <Header variant="student" isAdmin />
+      <Header variant="admin" />
       <main className="section">
         <div className="container">
+          <Breadcrumbs items={[{ label: "Admin", href: "/admin" }, { label: "Students" }]} />
           <div className="section-header">
             <span className="section-label">Admin</span>
             <h1 className="section-title">
               Manage <span className="title-gold">Students</span>
             </h1>
             <p className="section-sub">
-              Set each student&apos;s age group. They will only see courses for that group.
+              Set age groups, review course progress, and check permanent test scores.
             </p>
           </div>
-
-          <p style={{ marginBottom: "1.5rem" }}>
-            <AdminNavLink href="/admin/courses" pendingLabel="Opening courses">
-              Manage courses →
-            </AdminNavLink>
-          </p>
 
           {error && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
@@ -77,9 +71,6 @@ export default async function AdminStudentsPage() {
             testScores={testScores}
           />
 
-          <p style={{ marginTop: "2rem" }}>
-            <Link href="/student" className="course-link">← Back to dashboard</Link>
-          </p>
         </div>
       </main>
     </>

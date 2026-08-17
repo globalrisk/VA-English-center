@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 type LogoutButtonProps = {
-  variant?: "default" | "nav";
+  variant?: "default" | "nav" | "menu";
   onAfterLogout?: () => void;
 };
 
@@ -23,6 +23,14 @@ export function LogoutButton({ variant = "default", onAfterLogout }: LogoutButto
     return (
       <button type="button" className="nav-sign-out" onClick={handleLogout}>
         Sign Out
+      </button>
+    );
+  }
+
+  if (variant === "menu") {
+    return (
+      <button type="button" className="account-menu-action" onClick={handleLogout}>
+        Sign out
       </button>
     );
   }

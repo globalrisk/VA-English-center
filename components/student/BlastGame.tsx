@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   cards: GameCard[];
+  onComplete?: () => void | Promise<void>;
 };
 
 type Balloon = {
@@ -121,7 +122,7 @@ function findBalloonAtHead(
   return null;
 }
 
-export function BlastGame({ cards }: Props) {
+export function BlastGame({ cards, onComplete }: Props) {
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
@@ -132,6 +133,7 @@ export function BlastGame({ cards }: Props) {
   const roundRef = useRef(0);
   const balloonsRef = useRef<Balloon[]>([]);
   const neckStrikeRef = useRef<NeckStrike | null>(null);
+  const completionSentRef = useRef(false);
   const reducedMotion = useMemo(
     () =>
       typeof window !== "undefined" &&
@@ -157,6 +159,13 @@ export function BlastGame({ cards }: Props) {
   useEffect(() => {
     neckStrikeRef.current = neckStrike;
   }, [neckStrike]);
+
+  useEffect(() => {
+    if (phase === "finished" && !completionSentRef.current) {
+      completionSentRef.current = true;
+      void onComplete?.();
+    }
+  }, [onComplete, phase]);
 
   const spawnRound = useCallback(() => {
     if (validCards.length < MIN_CARDS) return;

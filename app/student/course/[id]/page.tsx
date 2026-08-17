@@ -1,10 +1,12 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ProgressSummary } from "@/components/student/ProgressSummary";
 import { UnitListItem } from "@/components/student/UnitListItem";
+import { summarizeProgress } from "@/lib/course-progress";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { Course, Lesson, Unit } from "@/types/course";
-import Link from "next/link";
+import type { Course, CourseCompletion, Lesson, LessonCompletion, Unit } from "@/types/course";
 import { notFound } from "next/navigation";
 
 type PageProps = {
@@ -41,13 +43,35 @@ export default async function CourseDetailPage({ params }: PageProps) {
   const typedCourse = course as Course;
   const typedUnits = ((units as Unit[]) ?? []).sort((a, b) => a.order_index - b.order_index);
   const typedLessons = (lessons as Pick<Lesson, "id" | "unit_id">[]) ?? [];
+  const [{ data: lessonCompletions }, { data: courseCompletion }] =
+    profile && !userIsAdmin && typedLessons.length > 0
+      ? await Promise.all([
+          supabase.from("lesson_completions").select("student_id, lesson_id, completed_at").in("lesson_id", typedLessons.map((lesson) => lesson.id)),
+          supabase.from("course_completions").select("student_id, course_id, completed_at").eq("course_id", id).maybeSingle(),
+        ])
+      : [{ data: [] }, { data: null }];
+  const completedLessonIds = new Set(
+    ((lessonCompletions as LessonCompletion[] | null) ?? []).map((row) => row.lesson_id)
+  );
+  const progress = summarizeProgress(
+    typedLessons.map((lesson) => lesson.id),
+    completedLessonIds,
+    (courseCompletion as CourseCompletion | null)?.completed_at ?? null
+  );
 
   return (
     <>
       <Doodles />
-      <Header variant="student" isAdmin={userIsAdmin} />
+      <Header variant={userIsAdmin ? "admin" : "student"} />
       <main className="section">
         <div className="container">
+          <Breadcrumbs
+            items={[
+              { label: userIsAdmin ? "Admin" : "My Learning", href: userIsAdmin ? "/admin" : "/student" },
+              { label: userIsAdmin ? "Student courses" : "Courses", href: "/student/courses" },
+              { label: typedCourse.title },
+            ]}
+          />
           <div className="section-header">
             <span className="section-label">Course</span>
             <h1 className="section-title">{typedCourse.title}</h1>
@@ -55,6 +79,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
               <p className="section-sub">{typedCourse.description}</p>
             )}
           </div>
+
+          {!userIsAdmin ? <ProgressSummary progress={progress} /> : null}
 
           {typedUnits.length === 0 ? (
             <p style={{ color: "var(--ink-light)" }}>Units coming soon.</p>
@@ -68,17 +94,13 @@ export default async function CourseDetailPage({ params }: PageProps) {
                     courseId={id}
                     unit={unit}
                     lessonCount={lessonCount}
+                    completedCount={typedLessons.filter((lesson) => lesson.unit_id === unit.id && completedLessonIds.has(lesson.id)).length}
                   />
                 );
               })}
             </div>
           )}
 
-          <p style={{ marginTop: "2rem" }}>
-            <Link href="/student/courses" className="course-link">
-              ← All courses
-            </Link>
-          </p>
         </div>
       </main>
     </>

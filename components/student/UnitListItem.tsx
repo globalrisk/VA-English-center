@@ -10,6 +10,7 @@ type Props = {
   courseId: string;
   unit: Unit;
   lessonCount: number;
+  completedCount?: number;
 };
 
 function UnitIcon({ kind }: { kind: Unit["kind"] }) {
@@ -42,7 +43,7 @@ function UnitIcon({ kind }: { kind: Unit["kind"] }) {
   );
 }
 
-export function UnitListItem({ courseId, unit, lessonCount }: Props) {
+export function UnitListItem({ courseId, unit, lessonCount, completedCount = 0 }: Props) {
   const [pending, setPending] = useState(false);
   const href = `/student/course/${courseId}/unit/${unit.id}`;
   const label = unitKindLabel(unit.kind);
@@ -68,6 +69,11 @@ export function UnitListItem({ courseId, unit, lessonCount }: Props) {
         <p>
           {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
         </p>
+        {lessonCount > 0 ? (
+          <p className={`unit-progress${completedCount === lessonCount ? " is-complete" : ""}`}>
+            {completedCount === lessonCount ? "✓ Unit completed" : `${completedCount} of ${lessonCount} completed`}
+          </p>
+        ) : null}
       </div>
 
       <span className={`unit-card-action${pending ? " btn-loading" : ""}`}>

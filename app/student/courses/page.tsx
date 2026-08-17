@@ -1,9 +1,12 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ProgressSummary } from "@/components/student/ProgressSummary";
 import { ageGroupLabel, ageGroupsLabel } from "@/lib/age-groups";
+import { summarizeProgress } from "@/lib/course-progress";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import { getCourseAgeGroups, type Course } from "@/types/course";
+import { getCourseAgeGroups, type Course, type CourseCompletion, type LessonCompletion } from "@/types/course";
 import Link from "next/link";
 
 export default async function StudentCoursesPage() {
@@ -16,14 +19,35 @@ export default async function StudentCoursesPage() {
     .select("id, title, description, cover_image_url, created_at, course_age_groups(age_group)")
     .order("created_at", { ascending: true });
 
+  const courseIds = (courses ?? []).map((course) => course.id);
+  const [{ data: lessons }, { data: lessonCompletions }, { data: courseCompletions }] =
+    profile && !userIsAdmin && courseIds.length > 0
+      ? await Promise.all([
+          supabase.from("lessons").select("id, course_id").in("course_id", courseIds),
+          supabase.from("lesson_completions").select("student_id, lesson_id, completed_at"),
+          supabase.from("course_completions").select("student_id, course_id, completed_at"),
+        ])
+      : [{ data: [] }, { data: [] }, { data: [] }];
+
+  const completedLessonIds = new Set(
+    ((lessonCompletions as LessonCompletion[] | null) ?? []).map((row) => row.lesson_id)
+  );
+  const completedCourses = new Map(
+    ((courseCompletions as CourseCompletion[] | null) ?? []).map((row) => [
+      row.course_id,
+      row.completed_at,
+    ])
+  );
+
   const hasSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://your-project.supabase.co";
 
   return (
     <>
       <Doodles />
-      <Header variant="student" isAdmin={userIsAdmin} />
+      <Header variant={userIsAdmin ? "admin" : "student"} />
       <main className="section">
         <div className="container">
+          <Breadcrumbs items={[{ label: userIsAdmin ? "Admin" : "My Learning", href: userIsAdmin ? "/admin" : "/student" }, { label: userIsAdmin ? "Student courses" : "Courses" }]} />
           <div className="section-header">
             <span className="section-label">Study</span>
             <h1 className="section-title">My <span className="title-gold">Courses</span></h1>
@@ -54,8 +78,17 @@ export default async function StudentCoursesPage() {
 
           {courses && courses.length > 0 ? (
             <div className="course-grid">
-              {(courses as Course[]).map((course) => (
-                <article key={course.id} className="course-card" data-color="pink">
+              {(courses as Course[]).map((course) => {
+                const lessonIds = (lessons ?? [])
+                  .filter((lesson) => lesson.course_id === course.id)
+                  .map((lesson) => lesson.id);
+                const progress = summarizeProgress(
+                  lessonIds,
+                  completedLessonIds,
+                  completedCourses.get(course.id) ?? null
+                );
+
+                return <article key={course.id} className={`course-card${progress.isComplete ? " is-complete" : ""}`} data-color="pink">
                   {course.cover_image_url && (
                     <img
                       src={course.cover_image_url}
@@ -68,11 +101,12 @@ export default async function StudentCoursesPage() {
                     {ageGroupsLabel(getCourseAgeGroups(course))}
                   </p>
                   <p>{course.description}</p>
+                  {!userIsAdmin ? <ProgressSummary progress={progress} compact /> : null}
                   <Link href={`/student/course/${course.id}`} className="course-link">
-                    Start learning →
+                    {progress.isComplete ? "Review course →" : progress.completed > 0 ? "Continue learning →" : "Start learning →"}
                   </Link>
-                </article>
-              ))}
+                </article>;
+              })}
             </div>
           ) : (
             hasSupabase &&
@@ -83,9 +117,6 @@ export default async function StudentCoursesPage() {
             )
           )}
 
-          <p style={{ marginTop: "2rem" }}>
-            <Link href="/student" className="course-link">← Back to dashboard</Link>
-          </p>
         </div>
       </main>
     </>

@@ -71,6 +71,25 @@ export type TestAttempt = {
   elapsed_seconds: number | null;
 };
 
+export type LessonCompletion = {
+  student_id: string;
+  lesson_id: string;
+  completed_at: string;
+};
+
+export type CourseCompletion = {
+  student_id: string;
+  course_id: string;
+  completed_at: string;
+};
+
+export type MarkLessonCompletionResult = {
+  lesson_id: string;
+  completed_at: string;
+  course_id: string;
+  course_completed_at: string | null;
+};
+
 export type TestScoreSummary = TestAttempt & {
   lesson_title: string;
   course_title: string;

@@ -4,6 +4,7 @@ import { AGE_GROUPS, ageGroupLabel, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import type { StudentDirectoryRow, TestScoreSummary } from "@/types/course";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -66,6 +67,12 @@ export function StudentAgeGroupEditor({ students, testScores }: Props) {
                 <p style={{ color: "var(--ink-light)", marginBottom: "0.75rem" }}>
                   Current: <strong>{ageGroupLabel(student.age_group)}</strong>
                 </p>
+                <Link
+                  href={`/admin/students/${student.id}`}
+                  className="btn btn-secondary btn-sm admin-student-progress-link"
+                >
+                  View course progress →
+                </Link>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label htmlFor={`age-${student.id}`}>Age group</label>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>

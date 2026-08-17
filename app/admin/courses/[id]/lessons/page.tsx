@@ -1,9 +1,9 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type { Course, Lesson, Unit } from "@/types/course";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { LessonManager } from "./LessonManager";
 
@@ -50,9 +50,16 @@ export default async function AdminCourseLessonsPage({ params }: PageProps) {
   return (
     <>
       <Doodles />
-      <Header variant="student" isAdmin />
+      <Header variant="admin" />
       <main className="section">
         <div className="container">
+          <Breadcrumbs
+            items={[
+              { label: "Admin", href: "/admin" },
+              { label: "Courses", href: "/admin/courses" },
+              { label: typedCourse.title },
+            ]}
+          />
           <div className="section-header">
             <span className="section-label">Admin · Lessons</span>
             <h1 className="section-title">{typedCourse.title}</h1>
@@ -60,12 +67,6 @@ export default async function AdminCourseLessonsPage({ params }: PageProps) {
               Add Game or Test lessons under Vocabulary, Reading, and Listening.
             </p>
           </div>
-
-          <p style={{ marginBottom: "1.5rem" }}>
-            <Link href="/admin/courses" className="course-link">
-              ← Back to courses
-            </Link>
-          </p>
 
           {unitsError && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>

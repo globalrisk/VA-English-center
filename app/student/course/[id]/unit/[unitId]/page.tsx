@@ -1,11 +1,13 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { LessonListItem } from "@/components/student/LessonListItem";
+import { ProgressSummary } from "@/components/student/ProgressSummary";
+import { summarizeProgress } from "@/lib/course-progress";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import { unitKindLabel } from "@/lib/units";
-import type { Course, Lesson, Unit } from "@/types/course";
-import Link from "next/link";
+import type { Course, Lesson, LessonCompletion, Unit } from "@/types/course";
 import { notFound } from "next/navigation";
 
 type PageProps = {
@@ -52,18 +54,41 @@ export default async function CourseUnitPage({ params }: PageProps) {
   const typedLessons = ((lessons as Lesson[]) ?? []).sort(
     (a, b) => a.order_index - b.order_index
   );
+  const { data: lessonCompletions } = profile && !userIsAdmin && typedLessons.length > 0
+    ? await supabase
+        .from("lesson_completions")
+        .select("student_id, lesson_id, completed_at")
+        .in("lesson_id", typedLessons.map((lesson) => lesson.id))
+    : { data: [] };
+  const completedLessonIds = new Set(
+    ((lessonCompletions as LessonCompletion[] | null) ?? []).map((row) => row.lesson_id)
+  );
+  const progress = summarizeProgress(
+    typedLessons.map((lesson) => lesson.id),
+    completedLessonIds
+  );
 
   return (
     <>
       <Doodles />
-      <Header variant="student" isAdmin={userIsAdmin} />
+      <Header variant={userIsAdmin ? "admin" : "student"} />
       <main className="section">
         <div className="container">
+          <Breadcrumbs
+            items={[
+              { label: userIsAdmin ? "Admin" : "My Learning", href: userIsAdmin ? "/admin" : "/student" },
+              { label: userIsAdmin ? "Student courses" : "Courses", href: "/student/courses" },
+              { label: typedCourse.title, href: `/student/course/${courseId}` },
+              { label: unitKindLabel(typedUnit.kind) },
+            ]}
+          />
           <div className="section-header">
             <span className="section-label">{typedCourse.title}</span>
             <h1 className="section-title">{unitKindLabel(typedUnit.kind)}</h1>
             <p className="section-sub">Choose a lesson to start learning.</p>
           </div>
+
+          {!userIsAdmin ? <ProgressSummary progress={progress} label="Unit progress" /> : null}
 
           {typedLessons.length === 0 ? (
             <p style={{ color: "var(--ink-light)" }}>No lessons in this unit yet.</p>
@@ -75,16 +100,12 @@ export default async function CourseUnitPage({ params }: PageProps) {
                   courseId={courseId}
                   lesson={lesson}
                   index={index}
+                  completed={completedLessonIds.has(lesson.id)}
                 />
               ))}
             </div>
           )}
 
-          <p style={{ marginTop: "2rem" }}>
-            <Link href={`/student/course/${courseId}`} className="course-link">
-              ← Back to units
-            </Link>
-          </p>
         </div>
       </main>
     </>

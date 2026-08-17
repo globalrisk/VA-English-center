@@ -1,12 +1,11 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import type { Course } from "@/types/course";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CourseAgeGroupEditor } from "./CourseAgeGroupEditor";
-import { AdminNavLink } from "@/components/admin/AdminNavLink";
 
 export default async function AdminCoursesPage() {
   const profile = await getCurrentProfile();
@@ -24,9 +23,10 @@ export default async function AdminCoursesPage() {
   return (
     <>
       <Doodles />
-      <Header variant="student" isAdmin />
+      <Header variant="admin" />
       <main className="section">
         <div className="container">
+          <Breadcrumbs items={[{ label: "Admin", href: "/admin" }, { label: "Courses" }]} />
           <div className="section-header">
             <span className="section-label">Admin</span>
             <h1 className="section-title">
@@ -37,12 +37,6 @@ export default async function AdminCoursesPage() {
             </p>
           </div>
 
-          <p style={{ marginBottom: "1.5rem" }}>
-            <AdminNavLink href="/admin/students" pendingLabel="Opening students">
-              Manage students →
-            </AdminNavLink>
-          </p>
-
           {error && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
               Could not load courses: {error.message}
@@ -51,9 +45,6 @@ export default async function AdminCoursesPage() {
 
           <CourseAgeGroupEditor courses={(courses as Course[]) ?? []} />
 
-          <p style={{ marginTop: "2rem" }}>
-            <Link href="/student" className="course-link">← Back to dashboard</Link>
-          </p>
         </div>
       </main>
     </>

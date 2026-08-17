@@ -19,12 +19,14 @@ type Props = {
   lesson: Lesson;
   isAdmin?: boolean;
   initialAttempt?: TestAttempt | null;
+  onComplete?: () => void | Promise<void>;
 };
 
 export function TestLessonEditor({
   lesson,
   isAdmin = false,
   initialAttempt = null,
+  onComplete,
 }: Props) {
   const router = useRouter();
   const [savedContent, setSavedContent] = useState(() =>
@@ -187,6 +189,7 @@ export function TestLessonEditor({
           content={savedContent}
           isAdmin={isAdmin}
           initialAttempt={initialAttempt}
+          onComplete={onComplete}
         />
       ) : (
         <p style={{ color: "var(--ink-light)", fontFamily: "var(--font-hand)" }}>

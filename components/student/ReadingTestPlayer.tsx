@@ -20,6 +20,7 @@ type Props = {
   content: TestContent;
   isAdmin?: boolean;
   initialAttempt?: TestAttempt | null;
+  onComplete?: () => void | Promise<void>;
 };
 
 type TestPhase =
@@ -39,6 +40,7 @@ export function ReadingTestPlayer({
   content,
   isAdmin = false,
   initialAttempt = null,
+  onComplete,
 }: Props) {
   const [answers, setAnswers] = useState<Record<string, number[]>>({});
   const [phase, setPhase] = useState<TestPhase>("first-attempt");
@@ -225,6 +227,7 @@ export function ReadingTestPlayer({
         return;
       }
       setAttempt(saved);
+      void onComplete?.();
     }
 
     setLatestWrongNumbers(wrongNumbers);

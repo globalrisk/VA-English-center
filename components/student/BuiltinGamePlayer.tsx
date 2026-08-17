@@ -11,9 +11,10 @@ import type { GameCard } from "@/types/course";
 type Props = {
   builtinGame: BuiltinGame;
   cards: GameCard[];
+  onComplete?: () => void | Promise<void>;
 };
 
-export function BuiltinGamePlayer({ builtinGame, cards }: Props) {
+export function BuiltinGamePlayer({ builtinGame, cards, onComplete }: Props) {
   const heading = builtinGameLabel(builtinGame);
 
   switch (builtinGame) {
@@ -21,35 +22,35 @@ export function BuiltinGamePlayer({ builtinGame, cards }: Props) {
       return (
         <div>
           <h2 className="builtin-game-heading">{heading}</h2>
-          <FlashcardFlipGame cards={cards} />
+          <FlashcardFlipGame cards={cards} onComplete={onComplete} />
         </div>
       );
     case "quiz":
       return (
         <div>
           <h2 className="builtin-game-heading">{heading}</h2>
-          <QuizChoiceGame cards={cards} />
+          <QuizChoiceGame cards={cards} onComplete={onComplete} />
         </div>
       );
     case "match":
       return (
         <div>
           <h2 className="builtin-game-heading">{heading}</h2>
-          <MatchPairsGame cards={cards} />
+          <MatchPairsGame cards={cards} onComplete={onComplete} />
         </div>
       );
     case "blast":
       return (
         <div>
           <h2 className="builtin-game-heading">{heading}</h2>
-          <BlastGame cards={cards} />
+          <BlastGame cards={cards} onComplete={onComplete} />
         </div>
       );
     default:
       return (
         <div>
           <h2 className="builtin-game-heading">{heading}</h2>
-          <FlashcardFlipGame cards={cards} />
+          <FlashcardFlipGame cards={cards} onComplete={onComplete} />
         </div>
       );
   }

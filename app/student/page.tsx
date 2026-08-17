@@ -1,17 +1,10 @@
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
+import { TestScoresGrid, type AttemptWithLesson } from "@/components/student/TestScoresGrid";
 import { ageGroupLabel } from "@/lib/age-groups";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import type { TestAttempt } from "@/types/course";
 import Link from "next/link";
-
-type AttemptWithLesson = TestAttempt & {
-  lessons: {
-    title: string;
-    courses: { title: string };
-  };
-};
 
 export default async function StudentDashboard() {
   const supabase = await createClient();
@@ -38,7 +31,7 @@ export default async function StudentDashboard() {
   return (
     <>
       <Doodles />
-      <Header variant="student" isAdmin={userIsAdmin} />
+      <Header variant={userIsAdmin ? "admin" : "student"} />
       <main className="section">
         <div className="container">
           <div className="section-header">
@@ -60,7 +53,7 @@ export default async function StudentDashboard() {
             <article className="course-card" data-color="blue">
               <h3>My Courses</h3>
               <p>View enrolled courses and start studying your lessons.</p>
-              <a href="/student/courses" className="course-link">Go to courses →</a>
+              <Link href="/student/courses" className="course-link">Go to courses →</Link>
             </article>
             {userIsAdmin && (
               <article className="course-card" data-color="pink">
@@ -69,50 +62,19 @@ export default async function StudentDashboard() {
                 <Link href="/admin/students" className="course-link">Open admin →</Link>
               </article>
             )}
-            <article className="course-card" data-color="yellow">
-              <h3>Need help?</h3>
-              <p>Contact your teacher or the center for support.</p>
-              <a href="/#contact" className="course-link">Contact us →</a>
-            </article>
           </div>
 
           {!userIsAdmin && (
-            <section className="student-test-scores">
+            <section className="student-test-scores" id="test-scores">
               <div className="section-header">
                 <span className="section-label">Permanent results</span>
                 <h2 className="section-title">My Test Scores</h2>
               </div>
-              {testScores.length > 0 ? (
-                <div className="course-grid">
-                  {testScores.map((attempt) => (
-                    <article
-                      key={attempt.id}
-                      className="course-card student-test-score-card"
-                      data-color="yellow"
-                    >
-                      <p className="student-test-score-course">
-                        {attempt.lessons.courses.title}
-                      </p>
-                      <h3>{attempt.lessons.title}</h3>
-                      <p className="student-test-score-value">
-                        {attempt.correct_count}/{attempt.total_questions} (
-                        {formatPercentage(attempt.percentage)}%)
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <p className="section-sub">No submitted test scores yet.</p>
-              )}
+              <TestScoresGrid attempts={testScores} />
             </section>
           )}
         </div>
       </main>
     </>
   );
-}
-
-function formatPercentage(value: number | null) {
-  const numeric = Number(value ?? 0);
-  return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(2);
 }

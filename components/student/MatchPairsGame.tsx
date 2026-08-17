@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   cards: GameCard[];
+  onComplete?: () => void | Promise<void>;
 };
 
 type Tile = {
@@ -42,7 +43,7 @@ function buildTiles(validCards: GameCard[]): Tile[] {
   return shuffle(tiles);
 }
 
-export function MatchPairsGame({ cards }: Props) {
+export function MatchPairsGame({ cards, onComplete }: Props) {
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
@@ -56,6 +57,7 @@ export function MatchPairsGame({ cards }: Props) {
   const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
   const startTimeRef = useRef<number | null>(null);
+  const completionSentRef = useRef(false);
 
   useEffect(() => {
     setTiles(buildTiles(validCards));
@@ -65,6 +67,7 @@ export function MatchPairsGame({ cards }: Props) {
     setElapsedMs(0);
     setRunning(false);
     setFinished(false);
+    completionSentRef.current = false;
     startTimeRef.current = null;
   }, [validCards]);
 
@@ -137,6 +140,10 @@ export function MatchPairsGame({ cards }: Props) {
       if (nextMatched.size === validCards.length) {
         setFinished(true);
         setRunning(false);
+        if (!completionSentRef.current) {
+          completionSentRef.current = true;
+          void onComplete?.();
+        }
       }
       return;
     }

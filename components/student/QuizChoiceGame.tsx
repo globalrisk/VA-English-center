@@ -1,10 +1,11 @@
 "use client";
 
 import type { GameCard } from "@/types/course";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   cards: GameCard[];
+  onComplete?: () => void | Promise<void>;
 };
 
 function shuffle<T>(items: T[]): T[] {
@@ -16,7 +17,7 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-export function QuizChoiceGame({ cards }: Props) {
+export function QuizChoiceGame({ cards, onComplete }: Props) {
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
@@ -26,6 +27,7 @@ export function QuizChoiceGame({ cards }: Props) {
   const [score, setScore] = useState(0);
   const [answered, setAnswered] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  const completionSentRef = useRef(false);
 
   const currentQuiz = quizCards[quizIndex];
   const choices = useMemo(() => {
@@ -36,6 +38,18 @@ export function QuizChoiceGame({ cards }: Props) {
     const picked = shuffle(others).slice(0, 3);
     return shuffle([currentQuiz.definition, ...picked]);
   }, [currentQuiz, validCards]);
+
+  useEffect(() => {
+    if (
+      answered &&
+      quizIndex + 1 >= quizCards.length &&
+      quizCards.length > 0 &&
+      !completionSentRef.current
+    ) {
+      completionSentRef.current = true;
+      void onComplete?.();
+    }
+  }, [answered, onComplete, quizCards.length, quizIndex]);
 
   if (validCards.length < 2) {
     return <p style={{ color: "var(--ink-light)" }}>Quiz is not ready yet.</p>;

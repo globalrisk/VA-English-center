@@ -1,4 +1,6 @@
-export default function Loading() {
+import { getTranslations } from "@/lib/i18n/server";
+export default async function Loading() {
+  const t = await getTranslations();
   return (
     <main className="loading-page section">
       <div className="loading-page-inner">
@@ -6,7 +8,7 @@ export default function Loading() {
           className="loading-spinner loading-spinner--lg"
           role="status"
           aria-live="polite"
-          aria-label="Loading"
+          aria-label={t("Loading")}
         >
           <svg className="loading-spinner-star" viewBox="0 0 40 40" aria-hidden="true">
             <path
@@ -17,7 +19,7 @@ export default function Loading() {
             />
           </svg>
         </span>
-        <p className="loading-page-caption">Loading…</p>
+        <p className="loading-page-caption">{t("Loading…")}</p>
       </div>
     </main>
   );

@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -19,6 +20,7 @@ type AttemptWithLesson = TestAttempt & {
 };
 
 export default async function AdminStudentsPage() {
+  const t = await getTranslations();
   const profile = await getCurrentProfile();
 
   if (!profile || !isAdmin(profile)) {
@@ -49,20 +51,19 @@ export default async function AdminStudentsPage() {
       <Header variant="admin" />
       <main className="section">
         <div className="container">
-          <Breadcrumbs items={[{ label: "Admin", href: "/admin" }, { label: "Students" }]} />
+          <Breadcrumbs items={[{ label: t("Admin"), href: "/admin" }, { label: t("Students") }]} />
           <div className="section-header">
-            <span className="section-label">Admin</span>
+            <span className="section-label">{t("Admin")}</span>
             <h1 className="section-title">
-              Manage <span className="title-gold">Students</span>
+              {t("Manage ")}<span className="title-gold">{t("Students")}</span>
             </h1>
             <p className="section-sub">
-              Set age groups, review course progress, and check permanent test scores.
-            </p>
+              {t("Set age groups, review course progress, and check permanent test scores.")}</p>
           </div>
 
           {error && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
-              Could not load students: {error.message}
+              {t("Could not load students: ")}{error.message}
             </p>
           )}
 

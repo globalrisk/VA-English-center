@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "@/components/i18n/LanguageProvider";
 import type { TestAttempt } from "@/types/course";
 
 export type AttemptWithLesson = TestAttempt & {
@@ -12,8 +15,9 @@ type TestScoresGridProps = {
 };
 
 export function TestScoresGrid({ attempts }: TestScoresGridProps) {
+  const t = useTranslations();
   if (attempts.length === 0) {
-    return <p className="section-sub">No submitted test scores yet.</p>;
+    return <p className="section-sub">{t("No submitted test scores yet.")}</p>;
   }
 
   return (

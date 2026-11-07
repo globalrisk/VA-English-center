@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -15,6 +16,7 @@ type PageProps = {
 };
 
 export default async function CourseUnitPage({ params }: PageProps) {
+  const t = await getTranslations();
   const { id: courseId, unitId } = await params;
   const supabase = await createClient();
   const profile = await getCurrentProfile();
@@ -76,22 +78,22 @@ export default async function CourseUnitPage({ params }: PageProps) {
         <div className="container">
           <Breadcrumbs
             items={[
-              { label: userIsAdmin ? "Admin" : "My Learning", href: userIsAdmin ? "/admin" : "/student" },
-              { label: userIsAdmin ? "Student courses" : "Courses", href: "/student/courses" },
+              { label: userIsAdmin ? t("Admin") : t("My Learning"), href: userIsAdmin ? "/admin" : "/student" },
+              { label: userIsAdmin ? t("Student courses") : t("Courses"), href: "/student/courses" },
               { label: typedCourse.title, href: `/student/course/${courseId}` },
-              { label: unitKindLabel(typedUnit.kind) },
+              { label: t(unitKindLabel(typedUnit.kind)) },
             ]}
           />
           <div className="section-header">
             <span className="section-label">{typedCourse.title}</span>
-            <h1 className="section-title">{unitKindLabel(typedUnit.kind)}</h1>
-            <p className="section-sub">Choose a lesson to start learning.</p>
+            <h1 className="section-title">{t(unitKindLabel(typedUnit.kind))}</h1>
+            <p className="section-sub">{t("Choose a lesson to start learning.")}</p>
           </div>
 
-          {!userIsAdmin ? <ProgressSummary progress={progress} label="Unit progress" /> : null}
+          {!userIsAdmin ? <ProgressSummary progress={progress} label={t("Unit progress")} /> : null}
 
           {typedLessons.length === 0 ? (
-            <p style={{ color: "var(--ink-light)" }}>No lessons in this unit yet.</p>
+            <p style={{ color: "var(--ink-light)" }}>{t("No lessons in this unit yet.")}</p>
           ) : (
             <div className="course-grid">
               {typedLessons.map((lesson, index) => (

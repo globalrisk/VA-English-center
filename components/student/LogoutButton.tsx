@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +12,7 @@ type LogoutButtonProps = {
 };
 
 export function LogoutButton({ variant = "default", onAfterLogout }: LogoutButtonProps) {
+  const t = useTranslations();
   const router = useRouter();
 
   async function handleLogout() {
@@ -22,22 +26,19 @@ export function LogoutButton({ variant = "default", onAfterLogout }: LogoutButto
   if (variant === "nav") {
     return (
       <button type="button" className="nav-sign-out" onClick={handleLogout}>
-        Sign Out
-      </button>
+        {t("Sign Out")}</button>
     );
   }
 
   if (variant === "menu") {
     return (
       <button type="button" className="account-menu-action" onClick={handleLogout}>
-        Sign out
-      </button>
+        {t("Sign out")}</button>
     );
   }
 
   return (
     <button type="button" className="btn btn-secondary" onClick={handleLogout}>
-      Sign Out
-    </button>
+      {t("Sign Out")}</button>
   );
 }

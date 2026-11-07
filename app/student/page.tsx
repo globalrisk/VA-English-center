@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { TestScoresGrid, type AttemptWithLesson } from "@/components/student/TestScoresGrid";
@@ -7,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
 export default async function StudentDashboard() {
+  const t = await getTranslations();
   const supabase = await createClient();
   const {
     data: { user },
@@ -35,31 +37,30 @@ export default async function StudentDashboard() {
       <main className="section">
         <div className="container">
           <div className="section-header">
-            <span className="section-label">Student Portal</span>
+            <span className="section-label">{t("Student Portal")}</span>
             <h1 className="section-title">
-              Hello, <span className="title-gold">{user?.email?.split("@")[0] ?? "Student"}</span>
+              {t("Hello, ")}<span className="title-gold">{user?.email?.split("@")[0] ?? t("Student")}</span>
             </h1>
             <p className="section-sub">
-              Ready to continue your English adventure?
-              {profile && (
-                <> · <span className="title-gold">{ageGroupLabel(profile.age_group)}</span> courses</>
+              {t("Ready to continue your English adventure?")}{profile && (
+                <> · <span className="title-gold">{t(ageGroupLabel(profile.age_group))}</span> {t("courses")}</>
               )}
               {userIsAdmin && (
-                <> · <span className="title-gold">Admin</span></>
+                <> · <span className="title-gold">{t("Admin")}</span></>
               )}
             </p>
           </div>
           <div className="course-grid" style={{ marginBottom: "2rem" }}>
             <article className="course-card" data-color="blue">
-              <h3>My Courses</h3>
-              <p>View enrolled courses and start studying your lessons.</p>
-              <Link href="/student/courses" className="course-link">Go to courses →</Link>
+              <h3>{t("My Courses")}</h3>
+              <p>{t("View enrolled courses and start studying your lessons.")}</p>
+              <Link href="/student/courses" className="course-link">{t("Go to courses →")}</Link>
             </article>
             {userIsAdmin && (
               <article className="course-card" data-color="pink">
-                <h3>Manage students</h3>
-                <p>Set age groups so each student sees the right courses.</p>
-                <Link href="/admin/students" className="course-link">Open admin →</Link>
+                <h3>{t("Manage students")}</h3>
+                <p>{t("Set age groups so each student sees the right courses.")}</p>
+                <Link href="/admin/students" className="course-link">{t("Open admin →")}</Link>
               </article>
             )}
           </div>
@@ -67,8 +68,8 @@ export default async function StudentDashboard() {
           {!userIsAdmin && (
             <section className="student-test-scores" id="test-scores">
               <div className="section-header">
-                <span className="section-label">Permanent results</span>
-                <h2 className="section-title">My Test Scores</h2>
+                <span className="section-label">{t("Permanent results")}</span>
+                <h2 className="section-title">{t("My Test Scores")}</h2>
               </div>
               <TestScoresGrid attempts={testScores} />
             </section>

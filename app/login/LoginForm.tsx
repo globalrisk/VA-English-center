@@ -1,6 +1,10 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { AGE_GROUPS, type AgeGroup } from "@/lib/age-groups";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { createClient } from "@/lib/supabase/client";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import Link from "next/link";
@@ -8,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 
 export default function LoginForm() {
+  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/student";
@@ -82,16 +87,15 @@ export default function LoginForm() {
       <div className="container" style={{ maxWidth: "480px" }}>
         <div className="contact-card" style={{ gridTemplateColumns: "1fr" }}>
           <div>
-            <span className="section-label">Student Portal</span>
+            <div className="login-language"><span className="section-label">{t("Student Portal")}</span><LanguageSwitcher /></div>
             <h1 className="section-title" style={{ marginBottom: "0.5rem" }}>
-              {mode === "login" ? "Welcome back" : "Create account"}
+              {mode === "login" ? t("Welcome back") : t("Create account")}
             </h1>
             <p style={{ color: "var(--ink-light)", marginBottom: "1.5rem" }}>
-              Sign in to access your courses and lessons.
-            </p>
+              {t("Sign in to access your courses and lessons.")}</p>
             <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">{t("Email")}</label>
                 <input
                   id="email"
                   type="email"
@@ -102,26 +106,26 @@ export default function LoginForm() {
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="password">Password</label>
+                <label htmlFor="password">{t("Password")}</label>
                 <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
+                  placeholder={t("Your password")}
                   required
                   minLength={6}
                 />
               </div>
               {mode === "signup" && (
                 <div className="form-group">
-                  <label htmlFor="confirm-password">Confirm password</label>
+                  <label htmlFor="confirm-password">{t("Confirm password")}</label>
                   <input
                     id="confirm-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Enter password again"
+                    placeholder={t("Enter password again")}
                     required
                     minLength={6}
                   />
@@ -129,7 +133,7 @@ export default function LoginForm() {
               )}
               {mode === "signup" && (
                 <div className="form-group">
-                  <label htmlFor="age-group">Age group</label>
+                  <label htmlFor="age-group">{t("Age group")}</label>
                   <select
                     id="age-group"
                     value={ageGroup}
@@ -138,17 +142,16 @@ export default function LoginForm() {
                   >
                     {AGE_GROUPS.map((group) => (
                       <option key={group.value} value={group.value}>
-                        {group.label} ({group.description})
+                        {t(group.label)} ({t(group.description)})
                       </option>
                     ))}
                   </select>
                   <p style={{ color: "var(--ink-light)", fontSize: "0.9rem", marginTop: "0.35rem" }}>
-                    You will only see courses for your age group.
-                  </p>
+                    {t("You will only see courses for your age group.")}</p>
                 </div>
               )}
               {error && (
-                <p style={{ color: "var(--red-cta)", fontFamily: "var(--font-hand)" }}>{error}</p>
+                <p style={{ color: "var(--red-cta)", fontFamily: "var(--font-hand)" }}>{t(error)}</p>
               )}
               {success && (
                 <p
@@ -158,24 +161,24 @@ export default function LoginForm() {
                     lineHeight: 1.5,
                   }}
                 >
-                  {success}
+                  {t(success)}
                 </p>
               )}
               <button type="submit" className="btn btn-primary btn-full btn-loading" disabled={loading}>
                 {loading ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    {mode === "login" ? "Signing in…" : "Signing up…"}
+                    {mode === "login" ? t("Signing in…") : t("Signing up…")}
                   </>
                 ) : (
-                  mode === "login" ? "Sign In ✦" : "Sign Up ✦"
+                  mode === "login" ? t("Sign In ✦") : t("Sign Up ✦")
                 )}
               </button>
             </form>
             <p style={{ marginTop: "1rem", textAlign: "center", fontFamily: "var(--font-hand)" }}>
               {mode === "login" ? (
                 <>
-                  No account?{" "}
+                  {t("No account?")}{" "}
                   <button
                     type="button"
                     className="course-link"
@@ -186,12 +189,11 @@ export default function LoginForm() {
                       setError(null);
                     }}
                   >
-                    Sign up
-                  </button>
+                    {t("Sign up")}</button>
                 </>
               ) : (
                 <>
-                  Already have an account?{" "}
+                  {t("Already have an account?")}{" "}
                   <button
                     type="button"
                     className="course-link"
@@ -202,13 +204,12 @@ export default function LoginForm() {
                       setError(null);
                     }}
                   >
-                    Sign in
-                  </button>
+                    {t("Sign in")}</button>
                 </>
               )}
             </p>
             <p style={{ marginTop: "1rem", textAlign: "center" }}>
-              <Link href="/" className="course-link">← Back to home</Link>
+              <Link href="/" className="course-link">{t("← Back to home")}</Link>
             </p>
           </div>
         </div>

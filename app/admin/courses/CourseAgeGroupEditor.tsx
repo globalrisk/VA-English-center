@@ -1,8 +1,11 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { AgeGroupMultiSelect } from "@/components/admin/AgeGroupMultiSelect";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { ageGroupsLabel, type AgeGroup } from "@/lib/age-groups";
+import { ageGroupLabel, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
 import { getCourseAgeGroups, type Course } from "@/types/course";
 import Link from "next/link";
@@ -14,6 +17,7 @@ type Props = {
 };
 
 function CourseLessonsLink({ courseId }: { courseId: string }) {
+  const t = useTranslations();
   const [pending, setPending] = useState(false);
   const href = `/admin/courses/${courseId}/lessons`;
 
@@ -25,19 +29,23 @@ function CourseLessonsLink({ courseId }: { courseId: string }) {
     >
       {pending ? (
         <>
-          <LoadingSpinner size="sm" label="Opening lessons" />
-          Opening…
-        </>
+          <LoadingSpinner size="sm" label={t("Opening lessons")} />
+          {t("Opening…")}</>
       ) : (
-        "Lessons"
+        t("Lessons")
       )}
     </Link>
   );
 }
 
 export function CourseAgeGroupEditor({ courses }: Props) {
+  const t = useTranslations();
   const router = useRouter();
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    action: "created" | "updated" | "deleted";
+    title: string;
+    ageGroups?: AgeGroup[];
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -87,14 +95,14 @@ export function CourseAgeGroupEditor({ courses }: Props) {
       return;
     }
 
-    setMessage(`Updated "${editTitle.trim()}".`);
+    setMessage({ action: "updated", title: editTitle.trim() });
     cancelEdit();
     router.refresh();
   }
 
   async function handleDelete(course: Course) {
     const confirmed = window.confirm(
-      `Delete "${course.title}"? All lessons in this course will be removed. This cannot be undone.`
+      t("Delete \"{0}\"? All lessons in this course will be removed. This cannot be undone.", { 0: course.title })
     );
     if (!confirmed) return;
 
@@ -115,7 +123,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
     }
 
     if (editingId === course.id) cancelEdit();
-    setMessage(`Deleted "${course.title}".`);
+    setMessage({ action: "deleted", title: course.title });
     router.refresh();
   }
 
@@ -139,7 +147,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
       return;
     }
 
-    setMessage(`Created "${newTitle.trim()}" for ${ageGroupsLabel(newAgeGroups)}.`);
+    setMessage({ action: "created", title: newTitle.trim(), ageGroups: newAgeGroups });
     setNewTitle("");
     setNewDescription("");
     setNewAgeGroups(["kids"]);
@@ -150,40 +158,42 @@ export function CourseAgeGroupEditor({ courses }: Props) {
     <div>
       {error && (
         <p style={{ color: "var(--red-cta)", marginBottom: "1rem", fontFamily: "var(--font-hand)" }}>
-          {error}
+          {t(error)}
         </p>
       )}
       {message && (
         <p style={{ color: "var(--blue-teal)", marginBottom: "1rem", fontFamily: "var(--font-hand)" }}>
-          {message}
+          {message.action === "created"
+            ? t('Created "{0}" for {1}.', { 0: message.title, 1: (message.ageGroups ?? []).map((group) => t(ageGroupLabel(group))).join(", ") })
+            : t(message.action === "updated" ? 'Updated "{0}".' : 'Deleted "{0}".', { 0: message.title })}
         </p>
       )}
 
       <form onSubmit={handleCreate} className="contact-card" style={{ marginBottom: "2rem" }}>
-        <h3 style={{ marginBottom: "1rem" }}>Add course</h3>
+        <h3 style={{ marginBottom: "1rem" }}>{t("Add course")}</h3>
         <div className="form-group">
-          <label htmlFor="new-course-title">Title</label>
+          <label htmlFor="new-course-title">{t("Title")}</label>
           <input
             id="new-course-title"
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             required
-            placeholder="e.g. Little Teens Conversation"
+            placeholder={t("e.g. Little Teens Conversation")}
           />
         </div>
         <div className="form-group">
-          <label htmlFor="new-course-description">Description</label>
+          <label htmlFor="new-course-description">{t("Description")}</label>
           <textarea
             id="new-course-description"
             value={newDescription}
             onChange={(e) => setNewDescription(e.target.value)}
             rows={2}
-            placeholder="Short summary for students"
+            placeholder={t("Short summary for students")}
           />
         </div>
         <div className="form-group">
-          <label>Age groups</label>
+          <label>{t("Age groups")}</label>
           <AgeGroupMultiSelect
             idPrefix="new-course"
             selected={newAgeGroups}
@@ -199,10 +209,9 @@ export function CourseAgeGroupEditor({ courses }: Props) {
           {creating ? (
             <>
               <LoadingSpinner size="sm" />
-              Creating…
-            </>
+              {t("Creating…")}</>
           ) : (
-            "Create course"
+            t("Create course")
           )}
         </button>
       </form>
@@ -218,7 +227,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
               {isEditing ? (
                 <>
                   <div className="form-group">
-                    <label htmlFor={`edit-title-${course.id}`}>Title</label>
+                    <label htmlFor={`edit-title-${course.id}`}>{t("Title")}</label>
                     <input
                       id={`edit-title-${course.id}`}
                       type="text"
@@ -229,7 +238,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                     />
                   </div>
                   <div className="form-group">
-                    <label htmlFor={`edit-desc-${course.id}`}>Description</label>
+                    <label htmlFor={`edit-desc-${course.id}`}>{t("Description")}</label>
                     <textarea
                       id={`edit-desc-${course.id}`}
                       value={editDescription}
@@ -239,7 +248,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Age groups</label>
+                    <label>{t("Age groups")}</label>
                     <AgeGroupMultiSelect
                       idPrefix={`edit-${course.id}`}
                       selected={editAgeGroups}
@@ -258,10 +267,9 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                       {isPending ? (
                         <>
                           <LoadingSpinner size="sm" />
-                          Saving…
-                        </>
+                          {t("Saving…")}</>
                       ) : (
-                        "Save changes"
+                        t("Save changes")
                       )}
                     </button>
                     <button
@@ -270,8 +278,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                       disabled={isPending}
                       onClick={cancelEdit}
                     >
-                      Cancel
-                    </button>
+                      {t("Cancel")}</button>
                   </div>
                 </>
               ) : (
@@ -283,7 +290,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                     </p>
                   )}
                   <p style={{ color: "var(--ink-light)", marginBottom: "0.75rem" }}>
-                    Age groups: <strong>{ageGroupsLabel(ageGroups)}</strong>
+                    {t("Age groups: ")}<strong>{ageGroups.map((group) => t(ageGroupLabel(group))).join(", ")}</strong>
                   </p>
                   <div className="course-card-actions">
                     <CourseLessonsLink courseId={course.id} />
@@ -293,8 +300,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                       disabled={isPending}
                       onClick={() => startEdit(course)}
                     >
-                      Edit
-                    </button>
+                      {t("Edit")}</button>
                     <button
                       type="button"
                       className="btn btn-danger btn-sm btn-loading"
@@ -304,10 +310,9 @@ export function CourseAgeGroupEditor({ courses }: Props) {
                       {isPending ? (
                         <>
                           <LoadingSpinner size="sm" />
-                          Deleting…
-                        </>
+                          {t("Deleting…")}</>
                       ) : (
-                        "Delete"
+                        t("Delete")
                       )}
                     </button>
                   </div>
@@ -319,7 +324,7 @@ export function CourseAgeGroupEditor({ courses }: Props) {
       </div>
 
       {courses.length === 0 && (
-        <p style={{ color: "var(--ink-light)" }}>No courses yet. Create one above.</p>
+        <p style={{ color: "var(--ink-light)" }}>{t("No courses yet. Create one above.")}</p>
       )}
     </div>
   );

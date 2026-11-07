@@ -1,0 +1,9 @@
+# Keep local credentials and editor/agent state out of deployment uploads.
+.env*
+.git
+.next
+node_modules
+.codex
+.cursor
+.agents
+*.tsbuildinfo

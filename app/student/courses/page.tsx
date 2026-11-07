@@ -1,8 +1,9 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ProgressSummary } from "@/components/student/ProgressSummary";
-import { ageGroupLabel, ageGroupsLabel } from "@/lib/age-groups";
+import { ageGroupLabel } from "@/lib/age-groups";
 import { summarizeProgress } from "@/lib/course-progress";
 import { getCurrentProfile, isAdmin } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
@@ -10,6 +11,7 @@ import { getCourseAgeGroups, type Course, type CourseCompletion, type LessonComp
 import Link from "next/link";
 
 export default async function StudentCoursesPage() {
+  const t = await getTranslations();
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const userIsAdmin = isAdmin(profile);
@@ -47,15 +49,15 @@ export default async function StudentCoursesPage() {
       <Header variant={userIsAdmin ? "admin" : "student"} />
       <main className="section">
         <div className="container">
-          <Breadcrumbs items={[{ label: userIsAdmin ? "Admin" : "My Learning", href: userIsAdmin ? "/admin" : "/student" }, { label: userIsAdmin ? "Student courses" : "Courses" }]} />
+          <Breadcrumbs items={[{ label: userIsAdmin ? t("Admin") : t("My Learning"), href: userIsAdmin ? "/admin" : "/student" }, { label: userIsAdmin ? t("Student courses") : t("Courses") }]} />
           <div className="section-header">
-            <span className="section-label">Study</span>
-            <h1 className="section-title">My <span className="title-gold">Courses</span></h1>
+            <span className="section-label">{t("Study")}</span>
+            <h1 className="section-title"><span className="title-gold">{t("My Courses")}</span></h1>
             {profile && (
               <p className="section-sub">
                 {userIsAdmin
-                  ? "Admin view: all courses"
-                  : `Showing ${ageGroupLabel(profile.age_group)} courses only`}
+                  ? t("Admin view: all courses")
+                  : t("Showing {0} courses only", { 0: t(ageGroupLabel(profile.age_group)) })}
               </p>
             )}
           </div>
@@ -63,8 +65,8 @@ export default async function StudentCoursesPage() {
           {!hasSupabase && (
             <div className="contact-card" style={{ gridTemplateColumns: "1fr", marginBottom: "2rem" }}>
               <p>
-                <strong>Supabase not configured yet.</strong> Copy <code>.env.local.example</code> to{" "}
-                <code>.env.local</code> and add your project URL and anon key. Then run the SQL schema in{" "}
+                <strong>{t("Supabase not configured yet.")}</strong> {t(" Copy ")}<code>.env.local.example</code> {t(" to")}{" "}
+                <code>.env.local</code> {t(" and add your project URL and anon key. Then run the SQL schema in")}{" "}
                 <code>supabase/schema.sql</code>.
               </p>
             </div>
@@ -72,7 +74,7 @@ export default async function StudentCoursesPage() {
 
           {error && hasSupabase && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
-              Could not load courses. Make sure the database tables exist (see supabase/schema.sql).
+              {t("Could not load courses. Make sure the database tables exist (see supabase/schema.sql).")}
             </p>
           )}
 
@@ -98,12 +100,12 @@ export default async function StudentCoursesPage() {
                   )}
                   <h3>{course.title}</h3>
                   <p style={{ fontSize: "0.9rem", color: "var(--blue-teal)", marginBottom: "0.5rem" }}>
-                    {ageGroupsLabel(getCourseAgeGroups(course))}
+                    {getCourseAgeGroups(course).map((group) => t(ageGroupLabel(group))).join(", ")}
                   </p>
                   <p>{course.description}</p>
                   {!userIsAdmin ? <ProgressSummary progress={progress} compact /> : null}
                   <Link href={`/student/course/${course.id}`} className="course-link">
-                    {progress.isComplete ? "Review course →" : progress.completed > 0 ? "Continue learning →" : "Start learning →"}
+                    {progress.isComplete ? t("Review course →") : progress.completed > 0 ? t("Continue learning →") : t("Start learning →")}
                   </Link>
                 </article>;
               })}
@@ -112,8 +114,7 @@ export default async function StudentCoursesPage() {
             hasSupabase &&
             !error && (
               <p style={{ color: "var(--ink-light)" }}>
-                No courses yet. Your teacher will add courses soon.
-              </p>
+                {t("No courses yet. Your teacher will add courses soon.")}</p>
             )
           )}
 

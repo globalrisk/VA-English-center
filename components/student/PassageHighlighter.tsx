@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import {
   HIGHLIGHTABLE_CLASS,
   HIGHLIGHT_COLORS,
@@ -25,6 +28,7 @@ type Props = {
 };
 
 function PassageHighlighterInner({ children }: Props) {
+  const t = useTranslations();
   const rootRef = useRef<HTMLDivElement>(null);
   const noteInputRef = useRef<HTMLTextAreaElement>(null);
   const [enabled, setEnabled] = useState(true);
@@ -161,7 +165,7 @@ function PassageHighlighterInner({ children }: Props) {
   function handleClearAll() {
     const root = rootRef.current;
     if (!root) return;
-    if (!window.confirm("Clear all highlights in the passage?")) return;
+    if (!window.confirm(t("Clear all highlights in the passage?"))) return;
     clearAllHighlights(root);
     setNoteDraft(null);
     setToolbar(null);
@@ -176,29 +180,28 @@ function PassageHighlighterInner({ children }: Props) {
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
           />
-          <span>Highlight text</span>
+          <span>{t("Highlight text")}</span>
         </label>
-        <div className="rt-hl-swatches" role="group" aria-label="Highlight color">
+        <div className="rt-hl-swatches" role="group" aria-label={t("Highlight color")}>
           {HIGHLIGHT_COLORS.map((color) => (
             <button
               key={color.id}
               type="button"
               className={`rt-hl-swatch ${colorId === color.id ? "is-active" : ""}`}
               style={{ backgroundColor: color.value }}
-              title={color.label}
-              aria-label={color.label}
+              title={t(color.label)}
+              aria-label={t(color.label)}
               onClick={() => applyColor(color.id)}
             />
           ))}
         </div>
         <button type="button" className="rt-hl-clear" onClick={handleClearAll}>
-          Clear all
-        </button>
+          {t("Clear all")}</button>
       </div>
       <p className="rt-hl-hint">
         {enabled
-          ? "Select text in the passage to highlight. Click a highlight to change color, add a note, or remove it."
-          : "Highlighting is off."}
+          ? t("Select text in the passage to highlight. Click a highlight to change color, add a note, or remove it.")
+          : t("Highlighting is off.")}
       </p>
 
       <div
@@ -211,7 +214,7 @@ function PassageHighlighterInner({ children }: Props) {
             className="rt-hl-toolbar"
             style={{ left: toolbar.x, top: toolbar.y }}
             role="toolbar"
-            aria-label="Highlight tools"
+            aria-label={t("Highlight tools")}
           >
             {HIGHLIGHT_COLORS.map((color) => (
               <button
@@ -219,8 +222,8 @@ function PassageHighlighterInner({ children }: Props) {
                 type="button"
                 className={`rt-hl-swatch ${colorId === color.id ? "is-active" : ""}`}
                 style={{ backgroundColor: color.value }}
-                title={color.label}
-                aria-label={color.label}
+                title={t(color.label)}
+                aria-label={t(color.label)}
                 onClick={() => applyColor(color.id)}
               />
             ))}
@@ -228,8 +231,8 @@ function PassageHighlighterInner({ children }: Props) {
               type="button"
               className="rt-hl-tool"
               onClick={handleNote}
-              title="Add note"
-              aria-label="Add note"
+              title={t("Add note")}
+              aria-label={t("Add note")}
             >
               <NoteIcon />
             </button>
@@ -237,8 +240,8 @@ function PassageHighlighterInner({ children }: Props) {
               type="button"
               className="rt-hl-tool is-danger"
               onClick={handleRemove}
-              title="Remove highlight"
-              aria-label="Remove highlight"
+              title={t("Remove highlight")}
+              aria-label={t("Remove highlight")}
             >
               <TrashIcon />
             </button>
@@ -250,17 +253,17 @@ function PassageHighlighterInner({ children }: Props) {
             className="rt-hl-note-dialog"
             style={{ left: toolbar.x, top: toolbar.y }}
             role="dialog"
-            aria-label="Highlight note"
+            aria-label={t("Highlight note")}
           >
             <div className="rt-hl-note-dialog-pin" aria-hidden="true" />
-            <p className="rt-hl-note-dialog-title">Sticky note</p>
+            <p className="rt-hl-note-dialog-title">{t("Sticky note")}</p>
             <textarea
               ref={noteInputRef}
               className="rt-hl-note-dialog-input"
               value={noteDraft}
               rows={3}
               maxLength={120}
-              placeholder="Write a short note…"
+              placeholder={t("Write a short note…")}
               onChange={(e) => setNoteDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
@@ -275,16 +278,13 @@ function PassageHighlighterInner({ children }: Props) {
             />
             <div className="rt-hl-note-dialog-actions">
               <button type="button" className="btn btn-secondary btn-sm" onClick={cancelNote}>
-                Cancel
-              </button>
+                {t("Cancel")}</button>
               {(toolbar.span?.dataset.note || noteDraft.trim()) && (
                 <button type="button" className="rt-hl-note-clear" onClick={clearNote}>
-                  Clear
-                </button>
+                  {t("Clear")}</button>
               )}
               <button type="button" className="btn btn-primary btn-sm" onClick={saveNote}>
-                Save
-              </button>
+                {t("Save")}</button>
             </div>
           </div>
         )}

@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { minCardsForBuiltinGame } from "@/lib/builtin-games";
 import type { GameCard } from "@/types/course";
 import { speakEnglish } from "@/lib/speech";
@@ -123,6 +126,7 @@ function findBalloonAtHead(
 }
 
 export function BlastGame({ cards, onComplete }: Props) {
+  const t = useTranslations();
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
@@ -448,8 +452,7 @@ export function BlastGame({ cards, onComplete }: Props) {
   if (validCards.length < MIN_CARDS) {
     return (
       <p style={{ color: "var(--ink-light)" }}>
-        Blast needs at least {MIN_CARDS} flashcards with terms and definitions.
-      </p>
+        {t("Blast needs at least ")}{MIN_CARDS} {t(" flashcards with terms and definitions.")}</p>
     );
   }
 
@@ -457,12 +460,10 @@ export function BlastGame({ cards, onComplete }: Props) {
     return (
       <div className="blast-game">
         <p className="flashcard-hint">
-          Stretch the neck to hit the balloon that matches the definition. You have{" "}
-          {ROUND_SECONDS} seconds!
-        </p>
+          {t("Stretch the neck to hit the balloon that matches the definition. You have")}{" "}
+          {ROUND_SECONDS} {t(" seconds!")}</p>
         <button type="button" className="btn btn-primary" onClick={startGame}>
-          Start Blast
-        </button>
+          {t("Start Blast")}</button>
       </div>
     );
   }
@@ -470,11 +471,10 @@ export function BlastGame({ cards, onComplete }: Props) {
   if (phase === "finished") {
     return (
       <div className="blast-game blast-game-finished">
-        <p className="blast-done-title">Time&apos;s up!</p>
-        <p className="blast-done-score">Final score: <strong>{score}</strong></p>
+        <p className="blast-done-title">{t("Time's up!")}</p>
+        <p className="blast-done-score">{t("Final score: ")}<strong>{score}</strong></p>
         <button type="button" className="btn btn-primary" onClick={startGame}>
-          Play again
-        </button>
+          {t("Play again")}</button>
       </div>
     );
   }
@@ -487,21 +487,21 @@ export function BlastGame({ cards, onComplete }: Props) {
     <div className="blast-game">
       <div className="blast-header">
         <span className="blast-stat">
-          <span className="blast-stat-label">Time</span>
+          <span className="blast-stat-label">{t("Time")}</span>
           <span className="blast-stat-value">{timeLeft}s</span>
         </span>
         <span className="blast-stat">
-          <span className="blast-stat-label">Score</span>
+          <span className="blast-stat-label">{t("Score")}</span>
           <span className="blast-stat-value">{score}</span>
         </span>
         <span className="blast-stat">
-          <span className="blast-stat-label">Combo</span>
+          <span className="blast-stat-label">{t("Combo")}</span>
           <span className="blast-stat-value">{combo}x</span>
         </span>
       </div>
 
       <p className="blast-prompt">
-        <span className="blast-prompt-label">Find the term:</span>
+        <span className="blast-prompt-label">{t("Find the term:")}</span>
         {prompt}
       </p>
 
@@ -580,7 +580,7 @@ export function BlastGame({ cards, onComplete }: Props) {
         </div>
       </div>
 
-      <p className="flashcard-hint">Tap to aim and stretch the neck!</p>
+      <p className="flashcard-hint">{t("Tap to aim and stretch the neck!")}</p>
     </div>
   );
 }

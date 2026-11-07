@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import type { GameCard } from "@/types/course";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -44,6 +47,7 @@ function buildTiles(validCards: GameCard[]): Tile[] {
 }
 
 export function MatchPairsGame({ cards, onComplete }: Props) {
+  const t = useTranslations();
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
@@ -85,7 +89,7 @@ export function MatchPairsGame({ cards, onComplete }: Props) {
   }, [running, finished]);
 
   if (validCards.length < 2) {
-    return <p style={{ color: "var(--ink-light)" }}>Match game is not ready yet.</p>;
+    return <p style={{ color: "var(--ink-light)" }}>{t("Match game is not ready yet.")}</p>;
   }
 
   const visibleTiles = tiles.filter((tile) => !matchedCardIndexes.has(tile.cardIndex));
@@ -160,18 +164,16 @@ export function MatchPairsGame({ cards, onComplete }: Props) {
       <div className="match-game-header">
         <span className="match-game-timer">{timerLabel}s</span>
         <button type="button" className="btn btn-secondary btn-sm" onClick={resetGame}>
-          Restart
-        </button>
+          {t("Restart")}</button>
       </div>
 
       {finished && (
         <p className="match-game-done">
-          Nice work! You cleared the board in <strong>{timerLabel}</strong> seconds.
-        </p>
+          {t("Nice work! You cleared the board in ")}<strong>{timerLabel}</strong> {t(" seconds.")}</p>
       )}
 
       {!finished && (
-        <p className="flashcard-hint">Tap two cards that belong together.</p>
+        <p className="flashcard-hint">{t("Tap two cards that belong together.")}</p>
       )}
 
       <div className="match-game-grid">

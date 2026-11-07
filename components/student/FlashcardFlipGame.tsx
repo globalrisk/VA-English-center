@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import type { GameCard } from "@/types/course";
 import { canSpeak, speakEnglish, stopSpeaking } from "@/lib/speech";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +13,7 @@ type Props = {
 };
 
 export function FlashcardFlipGame({ cards, onComplete }: Props) {
+  const t = useTranslations();
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
@@ -51,7 +55,7 @@ export function FlashcardFlipGame({ cards, onComplete }: Props) {
   }, [index, flipped, current?.term, speechSupported]);
 
   if (validCards.length < 2) {
-    return <p style={{ color: "var(--ink-light)" }}>Flashcards are not ready yet.</p>;
+    return <p style={{ color: "var(--ink-light)" }}>{t("Flashcards are not ready yet.")}</p>;
   }
 
   function goNext() {
@@ -83,7 +87,7 @@ export function FlashcardFlipGame({ cards, onComplete }: Props) {
         type="button"
         className={`flashcard ${flipped ? "flipped" : ""}`}
         onClick={handleFlip}
-        aria-label="Flip flashcard"
+        aria-label={t("Flip flashcard")}
       >
         <span className="flashcard-face flashcard-front">{current.term}</span>
         <span className="flashcard-face flashcard-back">{current.definition}</span>
@@ -94,24 +98,20 @@ export function FlashcardFlipGame({ cards, onComplete }: Props) {
             type="button"
             className="btn btn-secondary btn-sm"
             onClick={handleListen}
-            aria-label={`Listen to ${current.term}`}
+            aria-label={t("Listen to {0}", { 0: current.term })}
           >
-            Listen
-          </button>
+            {t("Listen")}</button>
         )}
       </div>
       <p className="flashcard-hint">
-        Tap the card to flip
-        {speechSupported ? " · Tap Listen to hear the word" : ""}
+        {t("Tap the card to flip")}{speechSupported ? t(" · Tap Listen to hear the word") : ""}
         · {index + 1} / {validCards.length}
       </p>
       <div className="course-card-actions">
         <button type="button" className="btn btn-secondary btn-sm" onClick={goPrev}>
-          ← Previous
-        </button>
+          {t("← Previous")}</button>
         <button type="button" className="btn btn-secondary btn-sm" onClick={goNext}>
-          Next →
-        </button>
+          {t("Next →")}</button>
       </div>
     </div>
   );

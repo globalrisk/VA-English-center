@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { PassageHighlighter } from "@/components/student/PassageHighlighter";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -42,6 +45,7 @@ export function ReadingTestPlayer({
   initialAttempt = null,
   onComplete,
 }: Props) {
+  const t = useTranslations();
   const [answers, setAnswers] = useState<Record<string, number[]>>({});
   const [phase, setPhase] = useState<TestPhase>("first-attempt");
   const [retryQuestionNumbers, setRetryQuestionNumbers] = useState<number[]>([]);
@@ -310,37 +314,36 @@ export function ReadingTestPlayer({
       <div className="reading-test-attempt-status" aria-live="polite">
         {isAdmin ? (
           <>
-            <strong>Admin preview</strong>
-            <span>No timer or score is saved.</span>
+            <strong>{t("Admin preview")}</strong>
+            <span>{t("No timer or score is saved.")}</span>
           </>
         ) : attemptLoading ? (
           <>
-            <strong>Preparing timed attempt…</strong>
-            <span>Your timer will use the server start time.</span>
+            <strong>{t("Preparing timed attempt…")}</strong>
+            <span>{t("Your timer will use the server start time.")}</span>
           </>
         ) : hasSavedScore && attempt ? (
           <>
             <strong>
-              Saved first score: {attempt.correct_count}/{attempt.total_questions} (
+              {t("Saved first score: ")}{attempt.correct_count}/{attempt.total_questions} (
               {formatPercentage(attempt.percentage)}%)
             </strong>
-            <span>Practice attempts cannot change this score.</span>
+            <span>{t("Practice attempts cannot change this score.")}</span>
           </>
         ) : secondsRemaining != null ? (
           <>
             <strong className={secondsRemaining <= 60 ? "is-urgent" : ""}>
-              Time remaining: {formatTime(secondsRemaining)}
+              {t("Time remaining: ")}{formatTime(secondsRemaining)}
             </strong>
-            <span>Your first submission will be saved permanently.</span>
+            <span>{t("Your first submission will be saved permanently.")}</span>
           </>
         ) : null}
         {timedOut && (
           <span className="reading-test-timeout-message">
-            Time expired. Your current answers were submitted.
-          </span>
+            {t("Time expired. Your current answers were submitted.")}</span>
         )}
         {attemptError && (
-          <span className="reading-test-attempt-error">{attemptError}</span>
+          <span className="reading-test-attempt-error">{t(attemptError)}</span>
         )}
       </div>
 
@@ -351,7 +354,7 @@ export function ReadingTestPlayer({
           activeLocation={activeLocation}
         />
 
-        <section className="reading-test-questions" aria-label="Questions">
+        <section className="reading-test-questions" aria-label={t("Questions")}>
           <div className="reading-test-mcq-list">
             {visibleQuestions.map((question) => {
               const key = answerKey(question.number);
@@ -385,9 +388,8 @@ export function ReadingTestPlayer({
                       <p>{question.prompt}</p>
                       {question.choiceMode === "multiple" && (
                         <p className="reading-test-select-hint">
-                          Choose {question.correctOptionIndexes.length} answers —{" "}
-                          {question.correctOptionIndexes.length} points.
-                        </p>
+                          {t("Choose ")}{question.correctOptionIndexes.length} {t(" answers —")}{" "}
+                          {question.correctOptionIndexes.length} {t(" points.")}</p>
                       )}
                     </div>
                   </div>
@@ -414,7 +416,7 @@ export function ReadingTestPlayer({
                   </div>
                   {isRevealed && isWrong && (
                     <p className="reading-test-reveal">
-                      Answer: {formatCorrectAnswers(question)}
+                      {t("Answer: ")}{formatCorrectAnswers(question)}
                     </p>
                   )}
                   {isRevealed && (
@@ -439,7 +441,7 @@ export function ReadingTestPlayer({
                               toggleLocation(question, optionIndex)
                             }
                           >
-                            {isActive ? "Hide" : "Show"} location for answer{" "}
+                            {isActive ? t("Hide") : t("Show")} {t(" location for answer")}{" "}
                             {optionLetter(optionIndex)}
                           </button>
                         );
@@ -459,8 +461,8 @@ export function ReadingTestPlayer({
               <>
                 <p className="reading-test-attempt-guidance">
                   {phase === "retry"
-                    ? "Retry any incorrect questions you want. Unanswered questions remain incorrect."
-                    : "Submit whenever you are ready. Unanswered questions count as incorrect."}
+                    ? t("Retry any incorrect questions you want. Unanswered questions remain incorrect.")
+                    : t("Submit whenever you are ready. Unanswered questions count as incorrect.")}
                 </p>
                 <button
                   type="button"
@@ -473,7 +475,7 @@ export function ReadingTestPlayer({
                   }
                   onClick={() => void handleSubmit()}
                 >
-                  {savingFirstScore ? "Saving first score…" : "Submit answers"}
+                  {savingFirstScore ? t("Saving first score…") : t("Submit answers")}
                 </button>
               </>
             )}
@@ -481,15 +483,13 @@ export function ReadingTestPlayer({
             {phase === "first-result" && latestWrongNumbers.length > 0 && (
               <>
                 <p className="reading-test-attempt-guidance">
-                  Some answers need another try.
-                </p>
+                  {t("Some answers need another try.")}</p>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={handleRedoWrong}
                 >
-                  Redo wrong questions
-                </button>
+                  {t("Redo wrong questions")}</button>
               </>
             )}
 
@@ -499,28 +499,26 @@ export function ReadingTestPlayer({
               <>
                 <p className="reading-test-attempt-guidance">
                   {latestWrongNumbers.length === 0
-                    ? "All answers are correct."
-                    : "Your second attempt is complete."}
+                    ? t("All answers are correct.")
+                    : t("Your second attempt is complete.")}
                 </p>
                 <button
                   type="button"
                   className="btn btn-primary"
                   onClick={handleReveal}
                 >
-                  Check answers
-                </button>
+                  {t("Check answers")}</button>
               </>
             )}
 
             {isRevealed && (
               <>
                 <p className="reading-test-score">
-                  {hasSavedScore ? "Practice score" : "Score"}: {score.earned}/
+                  {hasSavedScore ? t("Practice score") : t("Score")}: {score.earned}/
                   {score.total} ({Math.round((score.earned / score.total) * 100)}%)
                 </p>
                 <button type="button" className="btn btn-secondary" onClick={handleRetry}>
-                  Try again
-                </button>
+                  {t("Try again")}</button>
               </>
             )}
           </div>
@@ -535,13 +533,14 @@ function QuestionExplanationDropdown({
 }: {
   question: MultipleChoiceQuestion;
 }) {
+  const t = useTranslations();
   const explanation = question.explanation.trim();
 
   return (
     <div
       id={`reading-test-explanation-${question.number}`}
       className="reading-test-location-details"
-      aria-label={`Explanation for question ${question.number}`}
+      aria-label={t("Explanation for question {0}", { 0: question.number })}
     >
       <div className="reading-test-explain-text">{explanation}</div>
     </div>
@@ -605,12 +604,13 @@ const ReadingTestPassage = memo(function ReadingTestPassage({
   paragraphs: TestParagraph[];
   activeLocation: QuestionPassageLocation | null;
 }) {
+  const t = useTranslations();
   const targetParagraphIndex = activeLocation
     ? findLocationParagraph(paragraphs, activeLocation)
     : -1;
 
   return (
-    <section className="reading-test-passage" aria-label="Reading passage">
+    <section className="reading-test-passage" aria-label={t("Reading passage")}>
       <h2 className="reading-test-passage-title">{passageTitle}</h2>
       <PassageHighlighter>
         <div className="reading-test-paragraphs">

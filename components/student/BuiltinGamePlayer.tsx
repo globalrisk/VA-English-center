@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
 import { builtinGameLabel } from "@/lib/builtin-games";
 import { BlastGame } from "@/components/student/BlastGame";
 import { FlashcardFlipGame } from "@/components/student/FlashcardFlipGame";
@@ -15,7 +16,8 @@ type Props = {
 };
 
 export function BuiltinGamePlayer({ builtinGame, cards, onComplete }: Props) {
-  const heading = builtinGameLabel(builtinGame);
+  const t = useTranslations();
+  const heading = t(builtinGameLabel(builtinGame));
 
   switch (builtinGame) {
     case "flashcards":

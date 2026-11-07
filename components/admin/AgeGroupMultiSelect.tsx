@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { AGE_GROUPS, type AgeGroup } from "@/lib/age-groups";
 
 const CHIP_COLORS: Record<AgeGroup, string> = {
@@ -25,6 +28,7 @@ export function AgeGroupMultiSelect({
   onChange,
   showHint = true,
 }: Props) {
+  const t = useTranslations();
   function toggle(group: AgeGroup) {
     if (disabled) return;
 
@@ -40,7 +44,7 @@ export function AgeGroupMultiSelect({
 
   return (
     <div>
-      <div className="age-group-picker" role="group" aria-label="Age groups">
+      <div className="age-group-picker" role="group" aria-label={t("Age groups")}>
         {AGE_GROUPS.map((group) => {
           const checked = selected.includes(group.value);
           const isOnlySelected = checked && selected.length === 1;
@@ -60,8 +64,8 @@ export function AgeGroupMultiSelect({
                 {checked ? "✓" : ""}
               </span>
               <span>
-                <span className="age-group-chip-label">{group.label}</span>
-                <span className="age-group-chip-desc">{group.description}</span>
+                <span className="age-group-chip-label">{t(group.label)}</span>
+                <span className="age-group-chip-desc">{t(group.description)}</span>
               </span>
             </button>
           );
@@ -69,8 +73,7 @@ export function AgeGroupMultiSelect({
       </div>
       {showHint && (
         <p className="age-group-picker-hint">
-          Tap to toggle. At least one group must stay selected.
-        </p>
+          {t("Tap to toggle. At least one group must stay selected.")}</p>
       )}
     </div>
   );

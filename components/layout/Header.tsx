@@ -1,6 +1,10 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { LogoutButton } from "@/components/student/LogoutButton";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +27,7 @@ type NavigationItem = {
 const marketingItems: NavigationItem[] = [
   { href: "/#about", label: "About" },
   { href: "/#courses", label: "Courses" },
+  { href: "/check-in", label: "Check in" },
   { href: "/#features", label: "Why VA" },
   { href: "/#contact", label: "Contact" },
   { href: "/#contact", label: "Book a trial", cta: true },
@@ -40,11 +45,13 @@ const studentItems: NavigationItem[] = [
 
 const adminItems: NavigationItem[] = [
   { href: "/admin", label: "Overview", exact: true },
+  { href: "/admin/attendance", label: "Attendance", activePrefixes: ["/admin/attendance"] },
   { href: "/admin/courses", label: "Courses", activePrefixes: ["/admin/courses"] },
-  { href: "/admin/students", label: "Students", activePrefixes: ["/admin/students"] },
+  { href: "/admin/students", label: "Learning Students", activePrefixes: ["/admin/students"] },
 ];
 
 export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProps) {
+  const t = useTranslations();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -96,14 +103,15 @@ export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProp
   return (
     <>
       <header className="header">
-        <nav className="nav container" aria-label="Primary navigation">
+        <nav className="nav container" aria-label={t("Primary navigation")}>
         <Link href={logoHref} className="logo" onClick={closeMenus}>
           <span className="logo-icon" aria-hidden="true">✦</span>
           <span className="logo-text">VA English</span>
-          {variant === "admin" ? <span className="logo-context">Admin</span> : null}
+          {variant === "admin" ? <span className="logo-context">{t("Admin")}</span> : null}
         </Link>
 
         <div className="nav-end">
+          <LanguageSwitcher />
           <ul id="primary-navigation" className={`nav-links${menuOpen ? " open" : ""}`}>
             {items.map((item) => {
               const active = isItemActive(item);
@@ -115,25 +123,25 @@ export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProp
                     aria-current={active ? "page" : undefined}
                     onClick={closeMenus}
                   >
-                    {item.label}
+                    {t(item.label)}
                   </Link>
                 </li>
               );
             })}
 
             {!hasAccount ? (
-              <li><Link href="/login" onClick={closeMenus}>Log in</Link></li>
+              <li><Link href="/login" onClick={closeMenus}>{t("Log in")}</Link></li>
             ) : (
               <li className="nav-mobile-account">
-                <span className="nav-mobile-label">Account</span>
+                <span className="nav-mobile-label">{t("Account ")}</span>
                 {variant === "admin" ? (
-                  <Link href="/student" onClick={closeMenus}>View student site</Link>
+                  <Link href="/student" onClick={closeMenus}>{t("View student site")}</Link>
                 ) : null}
                 {variant === "marketing" ? (
-                  <Link href="/student" onClick={closeMenus}>My Learning</Link>
+                  <Link href="/student" onClick={closeMenus}>{t("My Learning")}</Link>
                 ) : null}
                 {variant === "admin" ? (
-                  <Link href="/" onClick={closeMenus}>Visit public website</Link>
+                  <Link href="/" onClick={closeMenus}>{t("Visit public website")}</Link>
                 ) : null}
                 <LogoutButton variant="menu" onAfterLogout={closeMenus} />
               </li>
@@ -149,18 +157,18 @@ export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProp
                 aria-expanded={accountOpen}
                 onClick={() => setAccountOpen((open) => !open)}
               >
-                Account <span aria-hidden="true">⌄</span>
+                {t("Account ")}<span aria-hidden="true">⌄</span>
               </button>
               {accountOpen ? (
-                <div className="nav-account-panel" aria-label="Account options">
+                <div className="nav-account-panel" aria-label={t("Account options")}>
                   {variant === "admin" ? (
-                    <Link href="/student" onClick={closeMenus}>View student site</Link>
+                    <Link href="/student" onClick={closeMenus}>{t("View student site")}</Link>
                   ) : null}
                   {variant === "marketing" ? (
-                    <Link href="/student" onClick={closeMenus}>My Learning</Link>
+                    <Link href="/student" onClick={closeMenus}>{t("My Learning")}</Link>
                   ) : null}
                   {variant === "admin" ? (
-                    <Link href="/" onClick={closeMenus}>Visit public website</Link>
+                    <Link href="/" onClick={closeMenus}>{t("Visit public website")}</Link>
                   ) : null}
                   <LogoutButton variant="menu" onAfterLogout={closeMenus} />
                 </div>
@@ -171,7 +179,7 @@ export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProp
           <button
             type="button"
             className={`nav-toggle${menuOpen ? " open" : ""}`}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? t("Close menu") : t("Open menu")}
             aria-controls="primary-navigation"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((open) => !open)}
@@ -185,7 +193,7 @@ export function Header({ variant = "marketing", isLoggedIn = false }: HeaderProp
         <button
           type="button"
           className="nav-menu-backdrop"
-          aria-label="Close navigation"
+          aria-label={t("Close navigation")}
           onClick={() => setMenuOpen(false)}
         />
       ) : null}

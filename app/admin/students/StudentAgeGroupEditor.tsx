@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { AGE_GROUPS, ageGroupLabel, type AgeGroup } from "@/lib/age-groups";
 import { createClient } from "@/lib/supabase/client";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -14,8 +17,9 @@ type Props = {
 };
 
 export function StudentAgeGroupEditor({ students, testScores }: Props) {
+  const t = useTranslations();
   const router = useRouter();
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ email: string; ageGroup: AgeGroup } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
 
@@ -37,7 +41,7 @@ export function StudentAgeGroupEditor({ students, testScores }: Props) {
       return;
     }
 
-    setMessage(`Updated ${students.find((s) => s.id === studentId)?.email ?? "student"} to ${ageGroupLabel(newAgeGroup)}.`);
+    setMessage({ email: students.find((s) => s.id === studentId)?.email ?? "student", ageGroup: newAgeGroup });
     router.refresh();
   }
 
@@ -45,12 +49,12 @@ export function StudentAgeGroupEditor({ students, testScores }: Props) {
     <div>
       {error && (
         <p style={{ color: "var(--red-cta)", marginBottom: "1rem", fontFamily: "var(--font-hand)" }}>
-          {error}
+          {t(error)}
         </p>
       )}
       {message && (
         <p style={{ color: "var(--blue-teal)", marginBottom: "1rem", fontFamily: "var(--font-hand)" }}>
-          {message}
+          {t("Updated {0} to {1}.", { 0: message.email, 1: t(ageGroupLabel(message.ageGroup)) })}
         </p>
       )}
 
@@ -65,16 +69,15 @@ export function StudentAgeGroupEditor({ students, testScores }: Props) {
               <article key={student.id} className="course-card" data-color="yellow">
                 <h3>{student.email}</h3>
                 <p style={{ color: "var(--ink-light)", marginBottom: "0.75rem" }}>
-                  Current: <strong>{ageGroupLabel(student.age_group)}</strong>
+                  {t("Current: ")}<strong>{t(ageGroupLabel(student.age_group))}</strong>
                 </p>
                 <Link
                   href={`/admin/students/${student.id}`}
                   className="btn btn-secondary btn-sm admin-student-progress-link"
                 >
-                  View course progress →
-                </Link>
+                  {t("View course progress →")}</Link>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label htmlFor={`age-${student.id}`}>Age group</label>
+                  <label htmlFor={`age-${student.id}`}>{t("Age group")}</label>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <select
                       id={`age-${student.id}`}
@@ -85,15 +88,15 @@ export function StudentAgeGroupEditor({ students, testScores }: Props) {
                     >
                       {AGE_GROUPS.map((group) => (
                         <option key={group.value} value={group.value}>
-                          {group.label} ({group.description})
+                          {t(group.label)} ({t(group.description)})
                         </option>
                       ))}
                     </select>
-                    {pendingId === student.id && <LoadingSpinner size="sm" label="Updating age group" />}
+                    {pendingId === student.id && <LoadingSpinner size="sm" label={t("Updating age group")} />}
                   </div>
                 </div>
                 <div className="admin-student-scores">
-                  <h4>Permanent test scores</h4>
+                  <h4>{t("Permanent test scores")}</h4>
                   {scores.length > 0 ? (
                     <ul>
                       {scores.map((score) => (
@@ -109,7 +112,7 @@ export function StudentAgeGroupEditor({ students, testScores }: Props) {
                       ))}
                     </ul>
                   ) : (
-                    <p>No submitted tests.</p>
+                    <p>{t("No submitted tests.")}</p>
                   )}
                 </div>
               </article>
@@ -119,12 +122,12 @@ export function StudentAgeGroupEditor({ students, testScores }: Props) {
 
       {students.some((s) => s.role === "admin") && (
         <p style={{ marginTop: "1.5rem", color: "var(--ink-light)", fontFamily: "var(--font-hand)" }}>
-          Admin: {students.filter((s) => s.role === "admin").map((s) => s.email).join(", ")}
+          {t("Admin: ")}{students.filter((s) => s.role === "admin").map((s) => s.email).join(", ")}
         </p>
       )}
 
       {students.filter((s) => s.role === "student").length === 0 && (
-        <p style={{ color: "var(--ink-light)" }}>No student accounts yet.</p>
+        <p style={{ color: "var(--ink-light)" }}>{t("No student accounts yet.")}</p>
       )}
     </div>
   );

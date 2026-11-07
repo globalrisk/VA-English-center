@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
@@ -7,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export default async function StudentResultsPage() {
+  const t = await getTranslations();
   const profile = await getCurrentProfile();
   if (!profile) redirect("/login?redirect=/student/results");
   if (isAdmin(profile)) redirect("/admin");
@@ -29,11 +31,11 @@ export default async function StudentResultsPage() {
       <Header variant="student" />
       <main className="section">
         <div className="container">
-          <Breadcrumbs items={[{ label: "My Learning", href: "/student" }, { label: "Results" }]} />
+          <Breadcrumbs items={[{ label: t("My Learning"), href: "/student" }, { label: t("Results") }]} />
           <div className="section-header">
-            <span className="section-label">Progress</span>
-            <h1 className="section-title">My <span className="title-gold">Results</span></h1>
-            <p className="section-sub">Your submitted test scores are saved here permanently.</p>
+            <span className="section-label">{t("Progress")}</span>
+            <h1 className="section-title"><span className="title-gold">{t("My Results")}</span></h1>
+            <p className="section-sub">{t("Your submitted test scores are saved here permanently.")}</p>
           </div>
           <TestScoresGrid attempts={attempts} />
         </div>

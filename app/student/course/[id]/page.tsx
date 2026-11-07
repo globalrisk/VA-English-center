@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -14,6 +15,7 @@ type PageProps = {
 };
 
 export default async function CourseDetailPage({ params }: PageProps) {
+  const t = await getTranslations();
   const { id } = await params;
   const supabase = await createClient();
   const profile = await getCurrentProfile();
@@ -67,13 +69,13 @@ export default async function CourseDetailPage({ params }: PageProps) {
         <div className="container">
           <Breadcrumbs
             items={[
-              { label: userIsAdmin ? "Admin" : "My Learning", href: userIsAdmin ? "/admin" : "/student" },
-              { label: userIsAdmin ? "Student courses" : "Courses", href: "/student/courses" },
+              { label: userIsAdmin ? t("Admin") : t("My Learning"), href: userIsAdmin ? "/admin" : "/student" },
+              { label: userIsAdmin ? t("Student courses") : t("Courses"), href: "/student/courses" },
               { label: typedCourse.title },
             ]}
           />
           <div className="section-header">
-            <span className="section-label">Course</span>
+            <span className="section-label">{t("Course")}</span>
             <h1 className="section-title">{typedCourse.title}</h1>
             {typedCourse.description && (
               <p className="section-sub">{typedCourse.description}</p>
@@ -83,7 +85,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           {!userIsAdmin ? <ProgressSummary progress={progress} /> : null}
 
           {typedUnits.length === 0 ? (
-            <p style={{ color: "var(--ink-light)" }}>Units coming soon.</p>
+            <p style={{ color: "var(--ink-light)" }}>{t("Units coming soon.")}</p>
           ) : (
             <div className="unit-grid">
               {typedUnits.map((unit) => {

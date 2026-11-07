@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -13,6 +14,7 @@ type PageProps = {
 };
 
 export default async function LessonDetailPage({ params }: PageProps) {
+  const t = await getTranslations();
   const { id: courseId, lessonId } = await params;
   const supabase = await createClient();
   const profile = await getCurrentProfile();
@@ -93,11 +95,11 @@ export default async function LessonDetailPage({ params }: PageProps) {
         <div className={isTestLesson ? "container container-test" : "container"}>
           <Breadcrumbs
             items={[
-              { label: userIsAdmin ? "Admin" : "My Learning", href: userIsAdmin ? "/admin" : "/student" },
-              { label: userIsAdmin ? "Student courses" : "Courses", href: "/student/courses" },
+              { label: userIsAdmin ? t("Admin") : t("My Learning"), href: userIsAdmin ? "/admin" : "/student" },
+              { label: userIsAdmin ? t("Student courses") : t("Courses"), href: "/student/courses" },
               { label: course.title, href: `/student/course/${courseId}` },
               {
-                label: typedUnit ? unitKindLabel(typedUnit.kind) : "Lessons",
+                label: typedUnit ? t(unitKindLabel(typedUnit.kind)) : t("Lessons"),
                 href: `/student/course/${courseId}/unit/${typedLesson.unit_id}`,
               },
               { label: typedLesson.title },

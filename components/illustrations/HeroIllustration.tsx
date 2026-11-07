@@ -1,9 +1,13 @@
+"use client";
+
+import { useTranslations } from "@/components/i18n/LanguageProvider";
 export function HeroIllustration() {
+  const t = useTranslations();
   return (
     <svg
       className="hero-illustration"
       viewBox="0 0 400 420"
-      aria-label="Illustration of a student with colorful hair"
+      aria-label={t("Illustration of a student with colorful hair")}
     >
       <rect width="400" height="420" fill="#FCF9F2" rx="16" />
       <circle cx="50" cy="60" r="8" fill="#FFB3C6" opacity="0.7" />
@@ -66,8 +70,7 @@ export function HeroIllustration() {
         strokeWidth="1"
       />
       <text x="60" y="400" fontFamily="Patrick Hand" fontSize="16" fill="#888">
-        just purrfect ✦
-      </text>
+        {t("just purrfect ✦")}</text>
     </svg>
   );
 }

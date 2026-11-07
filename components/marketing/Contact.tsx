@@ -1,9 +1,13 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { AGE_GROUPS } from "@/lib/age-groups";
 import { FormEvent, useState } from "react";
 
 export function Contact() {
+  const t = useTranslations();
   const [submitted, setSubmitted] = useState(false);
   const [name, setName] = useState("");
 
@@ -21,16 +25,16 @@ export function Contact() {
       <div className="container">
         <div className="contact-card">
           <div className="contact-info">
-            <span className="section-label">Get in Touch</span>
+            <span className="section-label">{t("Get in Touch")}</span>
             <h2 className="section-title">
-              Ready to Start<br />
-              <span className="title-rainbow">Your Journey?</span>
+              {t("Ready to Start")}<br />
+              <span className="title-rainbow">{t("Your Journey?")}</span>
             </h2>
-            <p>Book a free trial class or drop us a message. We&apos;d love to meet you!</p>
+            <p>{t("Book a free trial class or drop us a message. We'd love to meet you!")}</p>
             <ul className="contact-details">
               <li>
                 <span className="contact-icon">📍</span>
-                <span>123 Learning Street, Your City</span>
+                <span>{t("123 Learning Street, Your City")}</span>
               </li>
               <li>
                 <span className="contact-icon">📞</span>
@@ -44,38 +48,37 @@ export function Contact() {
           </div>
           {submitted ? (
             <div className="form-success">
-              <p>Thank you, {name}! ✦</p>
+              <p>{t("Thank you, ")}{name}! ✦</p>
               <p style={{ fontFamily: "Nunito, sans-serif", fontSize: "1rem", color: "#666", marginTop: "0.5rem" }}>
-                We&apos;ll get back to you soon. Can&apos;t wait to meet you!
-              </p>
+                {t("We'll get back to you soon. Can't wait to meet you!")}</p>
             </div>
           ) : (
             <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="name">Your Name</label>
-                <input type="text" id="name" name="name" placeholder="e.g. Minh" required />
+                <label htmlFor="name">{t("Your Name")}</label>
+                <input type="text" id="name" name="name" placeholder={t("e.g. Minh")} required />
               </div>
               <div className="form-group">
-                <label htmlFor="email">Email</label>
+                <label htmlFor="email">{t("Email")}</label>
                 <input type="email" id="email" name="email" placeholder="you@email.com" required />
               </div>
               <div className="form-group">
-                <label htmlFor="course">Interested In</label>
+                <label htmlFor="course">{t("Interested In")}</label>
                 <select id="course" name="course">
-                  <option value="">Select a course...</option>
+                  <option value="">{t("Select a course...")}</option>
                   {AGE_GROUPS.map((group) => (
                     <option key={group.value} value={group.value}>
-                      {group.label} ({group.description})
+                      {t(group.label)} ({t(group.description)})
                     </option>
                   ))}
-                  <option value="private">Private Tutoring</option>
+                  <option value="private">{t("Private Tutoring")}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label htmlFor="message">Message</label>
-                <textarea id="message" name="message" rows={4} placeholder="Tell us about yourself..." />
+                <label htmlFor="message">{t("Message")}</label>
+                <textarea id="message" name="message" rows={4} placeholder={t("Tell us about yourself...")} />
               </div>
-              <button type="submit" className="btn btn-primary btn-full">Send Message ✦</button>
+              <button type="submit" className="btn btn-primary btn-full">{t("Send Message ✦")}</button>
             </form>
           )}
         </div>

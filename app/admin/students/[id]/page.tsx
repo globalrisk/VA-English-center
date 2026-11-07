@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
@@ -22,6 +23,7 @@ type PageProps = {
 };
 
 export default async function StudentProgressPage({ params }: PageProps) {
+  const t = await getTranslations();
   const { id: studentId } = await params;
   const profile = await getCurrentProfile();
   if (!profile || !isAdmin(profile)) redirect("/student");
@@ -107,27 +109,25 @@ export default async function StudentProgressPage({ params }: PageProps) {
         <div className="container">
           <Breadcrumbs
             items={[
-              { label: "Admin", href: "/admin" },
-              { label: "Students", href: "/admin/students" },
+              { label: t("Admin"), href: "/admin" },
+              { label: t("Students"), href: "/admin/students" },
               { label: student.email },
             ]}
           />
 
           <div className="section-header">
-            <span className="section-label">Student progress</span>
+            <span className="section-label">{t("Student progress")}</span>
             <h1 className="section-title">{student.email}</h1>
             <p className="section-sub">
-              {ageGroupLabel(student.age_group)} · {completedCourseCount} of {courses.length}{" "}
-              {courses.length === 1 ? "course" : "courses"} completed
-            </p>
+              {t(ageGroupLabel(student.age_group))} · {t("{0} of {1} courses completed", { 0: completedCourseCount, 1: courses.length })}</p>
           </div>
 
           {loadError ? (
             <p className="admin-progress-error">
-              Could not load this student&apos;s progress: {loadError.message}
+              {t("Could not load this student's progress: ")}{loadError.message}
             </p>
           ) : courses.length === 0 ? (
-            <p className="section-sub">No courses are assigned to this student&apos;s age group.</p>
+            <p className="section-sub">{t("No courses are assigned to this student's age group.")}</p>
           ) : (
             <div className="admin-progress-list">
               {courses.map((course) => {
@@ -150,11 +150,11 @@ export default async function StudentProgressPage({ params }: PageProps) {
                       <span>
                         <strong>{course.title}</strong>
                         <small>
-                          {progress.completed} of {progress.total} lessons · {progress.percentage}%
+                          {t("{0} of {1} lessons", { 0: progress.completed, 1: progress.total })} · {progress.percentage}%
                         </small>
                       </span>
                       <span className={`admin-progress-status${progress.isComplete ? " is-complete" : ""}`}>
-                        {progress.isComplete ? "✓ Completed" : "In progress"}
+                        {progress.isComplete ? t("✓ Completed") : t("In progress")}
                       </span>
                     </summary>
 
@@ -168,16 +168,16 @@ export default async function StudentProgressPage({ params }: PageProps) {
                             return (
                               <li key={lesson.id} className={completed ? "is-complete" : ""}>
                                 <span>
-                                  <small>{unit ? unitKindLabel(unit.kind) : "Lesson"}</small>
+                                  <small>{unit ? t(unitKindLabel(unit.kind)) : t("Lesson")}</small>
                                   <strong>{lesson.title}</strong>
                                 </span>
-                                <span>{completed ? "✓ Completed" : "Not completed"}</span>
+                                <span>{completed ? t("✓ Completed") : t("Not completed")}</span>
                               </li>
                             );
                           })}
                         </ul>
                       ) : (
-                        <p className="section-sub">This course has no lessons yet.</p>
+                        <p className="section-sub">{t("This course has no lessons yet.")}</p>
                       )}
                     </div>
                   </details>

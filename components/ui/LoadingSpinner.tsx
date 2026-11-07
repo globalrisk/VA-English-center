@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 type LoadingSpinnerProps = {
   size?: "sm" | "md" | "lg";
   label?: string;
@@ -7,12 +10,13 @@ type LoadingSpinnerProps = {
 };
 
 export function LoadingSpinner({ size = "md", label, className }: LoadingSpinnerProps) {
+  const t = useTranslations();
   return (
     <span
       className={`loading-spinner loading-spinner--${size}${className ? ` ${className}` : ""}`}
       role="status"
       aria-live="polite"
-      aria-label={label ?? "Loading"}
+      aria-label={t(label ?? "Loading")}
     >
       <svg className="loading-spinner-star" viewBox="0 0 40 40" aria-hidden="true">
         <path
@@ -22,7 +26,7 @@ export function LoadingSpinner({ size = "md", label, className }: LoadingSpinner
           strokeWidth="1.5"
         />
       </svg>
-      {label && <span className="loading-spinner-label">{label}</span>}
+      {label && <span className="loading-spinner-label">{t(label)}</span>}
     </span>
   );
 }

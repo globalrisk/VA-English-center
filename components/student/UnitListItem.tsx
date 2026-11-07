@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { unitKindLabel } from "@/lib/units";
 import type { Unit } from "@/types/course";
@@ -44,9 +47,10 @@ function UnitIcon({ kind }: { kind: Unit["kind"] }) {
 }
 
 export function UnitListItem({ courseId, unit, lessonCount, completedCount = 0 }: Props) {
+  const t = useTranslations();
   const [pending, setPending] = useState(false);
   const href = `/student/course/${courseId}/unit/${unit.id}`;
-  const label = unitKindLabel(unit.kind);
+  const label = t(unitKindLabel(unit.kind));
 
   return (
     <Link
@@ -54,10 +58,10 @@ export function UnitListItem({ courseId, unit, lessonCount, completedCount = 0 }
       className="unit-card"
       data-unit={unit.kind}
       onClick={() => setPending(true)}
-      aria-label={`Open ${label} unit, ${lessonCount} ${lessonCount === 1 ? "lesson" : "lessons"}`}
+      aria-label={t("Open {0} unit, {1} {2}", { 0: label, 1: lessonCount, 2: t(lessonCount === 1 ? "lesson" : "lessons") })}
     >
       <div className="unit-card-top">
-        <span className="unit-card-number">Unit</span>
+        <span className="unit-card-number">{t("Unit")}</span>
       </div>
 
       <div className="unit-card-icon">
@@ -65,13 +69,13 @@ export function UnitListItem({ courseId, unit, lessonCount, completedCount = 0 }
       </div>
 
       <div className="unit-card-copy">
-        <h2>{label}</h2>
+        <h2>{t(label)}</h2>
         <p>
-          {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
+          {lessonCount} {t(lessonCount === 1 ? "lesson" : "lessons")}
         </p>
         {lessonCount > 0 ? (
           <p className={`unit-progress${completedCount === lessonCount ? " is-complete" : ""}`}>
-            {completedCount === lessonCount ? "✓ Unit completed" : `${completedCount} of ${lessonCount} completed`}
+            {completedCount === lessonCount ? t("✓ Unit completed") : t("{0} of {1} completed", { 0: completedCount, 1: lessonCount })}
           </p>
         ) : null}
       </div>
@@ -79,12 +83,11 @@ export function UnitListItem({ courseId, unit, lessonCount, completedCount = 0 }
       <span className={`unit-card-action${pending ? " btn-loading" : ""}`}>
         {pending ? (
           <>
-            <LoadingSpinner size="sm" label="Opening unit" />
-            Opening…
-          </>
+            <LoadingSpinner size="sm" label={t("Opening unit")} />
+            {t("Opening…")}</>
         ) : (
           <>
-            Open <span aria-hidden="true">→</span>
+            {t("Open ")}<span aria-hidden="true">→</span>
           </>
         )}
       </span>

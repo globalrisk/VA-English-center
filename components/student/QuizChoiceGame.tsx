@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import type { GameCard } from "@/types/course";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -18,6 +21,7 @@ function shuffle<T>(items: T[]): T[] {
 }
 
 export function QuizChoiceGame({ cards, onComplete }: Props) {
+  const t = useTranslations();
   const validCards = useMemo(
     () => cards.filter((c) => c.term.trim() && c.definition.trim()),
     [cards]
@@ -52,7 +56,7 @@ export function QuizChoiceGame({ cards, onComplete }: Props) {
   }, [answered, onComplete, quizCards.length, quizIndex]);
 
   if (validCards.length < 2) {
-    return <p style={{ color: "var(--ink-light)" }}>Quiz is not ready yet.</p>;
+    return <p style={{ color: "var(--ink-light)" }}>{t("Quiz is not ready yet.")}</p>;
   }
 
   function pickChoice(definition: string) {
@@ -72,7 +76,7 @@ export function QuizChoiceGame({ cards, onComplete }: Props) {
   return (
     <div className="flashcard-game">
       <p className="flashcard-quiz-prompt">
-        What is <strong>{currentQuiz?.term}</strong>?
+        {t("What is ")}<strong>{currentQuiz?.term}</strong>?
       </p>
       <div className="flashcard-quiz-choices">
         {choices.map((choice) => {
@@ -92,14 +96,13 @@ export function QuizChoiceGame({ cards, onComplete }: Props) {
         })}
       </div>
       <p className="flashcard-hint">
-        Score: {score} / {quizCards.length}
+        {t("Score: ")}{score} / {quizCards.length}
         {answered && quizIndex + 1 < quizCards.length && (
           <button type="button" className="course-link" style={{ marginLeft: "0.75rem" }} onClick={nextQuiz}>
-            Next question →
-          </button>
+            {t("Next question →")}</button>
         )}
         {answered && quizIndex + 1 >= quizCards.length && (
-          <span style={{ marginLeft: "0.75rem" }}>Done!</span>
+          <span style={{ marginLeft: "0.75rem" }}>{t("Done!")}</span>
         )}
       </p>
     </div>

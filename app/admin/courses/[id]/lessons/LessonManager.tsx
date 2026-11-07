@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { GameCardsEditor } from "@/components/admin/GameCardsEditor";
 import { TestContentEditor } from "@/components/admin/TestContentEditor";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -129,6 +132,7 @@ function rpcPayload(form: LessonForm, units: Unit[], orderIndex: number | null) 
 }
 
 export function LessonManager({ courseId, units, lessons }: Props) {
+  const t = useTranslations();
   const router = useRouter();
   const sortedUnits = useMemo(
     () => [...units].sort((a, b) => a.order_index - b.order_index),
@@ -253,7 +257,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
   }
 
   async function handleDelete(lesson: Lesson) {
-    const confirmed = window.confirm(`Delete lesson "${lesson.title}"? This cannot be undone.`);
+    const confirmed = window.confirm(t("Delete lesson \"{0}\"? This cannot be undone.", { 0: lesson.title }));
     if (!confirmed) return;
 
     setMessage(null);
@@ -309,7 +313,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
     return (
       <>
         <div className="form-group">
-          <label htmlFor={`${idPrefix}-unit`}>Unit</label>
+          <label htmlFor={`${idPrefix}-unit`}>{t("Unit")}</label>
           <select
             id={`${idPrefix}-unit`}
             value={form.unitId}
@@ -318,14 +322,14 @@ export function LessonManager({ courseId, units, lessons }: Props) {
           >
             {sortedUnits.map((unit) => (
               <option key={unit.id} value={unit.id}>
-                {unitKindLabel(unit.kind)}
+                {t(unitKindLabel(unit.kind))}
               </option>
             ))}
           </select>
         </div>
 
         <div className="form-group">
-          <label htmlFor={`${idPrefix}-type`}>Lesson type</label>
+          <label htmlFor={`${idPrefix}-type`}>{t("Lesson type")}</label>
           <select
             id={`${idPrefix}-type`}
             value={form.lessonType}
@@ -334,7 +338,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
           >
             {availableLessonTypes.map((type) => (
               <option key={type.value} value={type.value}>
-                {type.label} — {type.description}
+                {t(type.label)} — {t(type.description)}
               </option>
             ))}
           </select>
@@ -343,7 +347,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
         {form.lessonType === "game" && (
           <>
             <div className="form-group">
-              <label htmlFor={`${idPrefix}-builtin-game`}>Built-in game</label>
+              <label htmlFor={`${idPrefix}-builtin-game`}>{t("Built-in game")}</label>
               <select
                 id={`${idPrefix}-builtin-game`}
                 value={form.builtinGame}
@@ -352,23 +356,20 @@ export function LessonManager({ courseId, units, lessons }: Props) {
               >
                 {availableBuiltinGames.map((game) => (
                   <option key={game.value} value={game.value}>
-                    {game.label} — {game.description}
+                    {t(game.label)} — {t(game.description)}
                   </option>
                 ))}
               </select>
               {flashcardsOnlyUnit && (
                 <p className="age-group-picker-hint" style={{ marginTop: "0.35rem" }}>
-                  {unitKindLabel(selectedUnitKind!)} game lessons support Flashcards only.
-                </p>
+                  {t(unitKindLabel(selectedUnitKind!))} {t(" game lessons support Flashcards only.")}</p>
               )}
             </div>
 
             <div className="form-group">
-              <label>Terms & definitions ({builtinGameLabel(form.builtinGame)})</label>
+              <label>{t("Terms & definitions (")}{t(builtinGameLabel(form.builtinGame))})</label>
               <p className="age-group-picker-hint" style={{ marginBottom: "0.5rem" }}>
-                Used by the selected built-in game. Click <strong>Save changes</strong> after
-                changing the game type.
-              </p>
+                {t("Used by the selected built-in game. Click ")}<strong>{t("Save changes")}</strong> {t(" after changing the game type.")}</p>
               <GameCardsEditor
                 cards={form.gameCards}
                 disabled={disabled}
@@ -378,14 +379,14 @@ export function LessonManager({ courseId, units, lessons }: Props) {
             </div>
 
             <div className="form-group">
-              <label htmlFor={`${idPrefix}-game-intro`}>Intro (optional)</label>
+              <label htmlFor={`${idPrefix}-game-intro`}>{t("Intro (optional)")}</label>
               <textarea
                 id={`${idPrefix}-game-intro`}
                 value={form.content}
                 onChange={(e) => patch({ content: e.target.value })}
                 rows={2}
                 disabled={disabled}
-                placeholder="Instructions for students"
+                placeholder={t("Instructions for students")}
               />
             </div>
           </>
@@ -394,18 +395,18 @@ export function LessonManager({ courseId, units, lessons }: Props) {
         {form.lessonType === "test" && (
           <>
             <div className="form-group">
-              <label htmlFor={`${idPrefix}-test-intro`}>Intro (optional)</label>
+              <label htmlFor={`${idPrefix}-test-intro`}>{t("Intro (optional)")}</label>
               <textarea
                 id={`${idPrefix}-test-intro`}
                 value={form.content}
                 onChange={(e) => patch({ content: e.target.value })}
                 rows={2}
                 disabled={disabled}
-                placeholder="Short instructions for students"
+                placeholder={t("Short instructions for students")}
               />
             </div>
             <div className="form-group">
-              <label>Passage & questions</label>
+              <label>{t("Passage & questions")}</label>
               <TestContentEditor
                 value={form.testContent}
                 disabled={disabled}
@@ -432,7 +433,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
             }}
           >
             <div className="form-group">
-              <label htmlFor={`edit-lesson-title-${lesson.id}`}>Title</label>
+              <label htmlFor={`edit-lesson-title-${lesson.id}`}>{t("Title")}</label>
               <input
                 id={`edit-lesson-title-${lesson.id}`}
                 type="text"
@@ -445,7 +446,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
             </div>
             {renderTypeFields(editForm, setEditForm, `edit-${lesson.id}`, isPending)}
             <div className="form-group">
-              <label htmlFor={`edit-lesson-order-${lesson.id}`}>Order</label>
+              <label htmlFor={`edit-lesson-order-${lesson.id}`}>{t("Order")}</label>
               <input
                 id={`edit-lesson-order-${lesson.id}`}
                 type="number"
@@ -466,10 +467,9 @@ export function LessonManager({ courseId, units, lessons }: Props) {
                 {isPending ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    Saving…
-                  </>
+                    {t("Saving…")}</>
                 ) : (
-                  "Save changes"
+                  t("Save changes")
                 )}
               </button>
               <button
@@ -478,38 +478,36 @@ export function LessonManager({ courseId, units, lessons }: Props) {
                 disabled={isPending}
                 onClick={cancelEdit}
               >
-                Cancel
-              </button>
+                {t("Cancel")}</button>
             </div>
           </form>
         ) : (
           <>
             <span className="badge badge-yellow" style={{ marginBottom: "0.5rem" }}>
-              {lessonTypeLabel(lesson.lesson_type ?? "game")}
+              {t(lessonTypeLabel(lesson.lesson_type ?? "game"))}
             </span>
             <h3>
-              Lesson {indexInUnit + 1}: {lesson.title}
+              {t("Lesson ")}{indexInUnit + 1}: {lesson.title}
             </h3>
             <p style={{ color: "var(--ink-light)", fontSize: "0.9rem", marginBottom: "0.5rem" }}>
-              Order: {lesson.order_index}
+              {t("Order: ")}{lesson.order_index}
             </p>
             {lesson.content && <p>{lesson.content}</p>}
             {lesson.lesson_type === "game" && lesson.builtin_game && (
               <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>
-                Game: {builtinGameLabel(lesson.builtin_game)}
+                {t("Game: ")}{t(builtinGameLabel(lesson.builtin_game))}
                 {validGameCards(normalizeGameCards(lesson.game_cards)).length > 0 &&
-                  ` · ${validGameCards(normalizeGameCards(lesson.game_cards)).length} cards`}
+                  t(" · {0} cards", { 0: validGameCards(normalizeGameCards(lesson.game_cards)).length })}
               </p>
             )}
             {lesson.lesson_type === "test" && (
               <p style={{ color: "var(--ink-light)", fontSize: "0.85rem" }}>
-                Reading test
-                {(() => {
+                {t("Reading test")}{(() => {
                   const test = normalizeTestContent(lesson.test_content);
                   const n = countTestQuestions(test);
                   return n > 0
-                    ? ` · ${test.paragraphs.length} paragraphs · ${n} questions`
-                    : " · not configured";
+                    ? t(" · {0} paragraphs · {1} questions", { 0: test.paragraphs.length, 1: n })
+                    : t(" · not configured");
                 })()}
               </p>
             )}
@@ -520,8 +518,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
                 disabled={isPending}
                 onClick={() => startEdit(lesson)}
               >
-                Edit
-              </button>
+                {t("Edit")}</button>
               <button
                 type="button"
                 className="btn btn-danger btn-sm btn-loading"
@@ -531,10 +528,9 @@ export function LessonManager({ courseId, units, lessons }: Props) {
                 {isPending ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    Deleting…
-                  </>
+                    {t("Deleting…")}</>
                 ) : (
-                  "Delete"
+                  t("Delete")
                 )}
               </button>
             </div>
@@ -547,8 +543,7 @@ export function LessonManager({ courseId, units, lessons }: Props) {
   if (sortedUnits.length === 0) {
     return (
       <p style={{ color: "var(--red-cta)" }}>
-        This course has no units. Re-create the course or run the units migration.
-      </p>
+        {t("This course has no units. Re-create the course or run the units migration.")}</p>
     );
   }
 
@@ -556,37 +551,37 @@ export function LessonManager({ courseId, units, lessons }: Props) {
     <div>
       {error && (
         <p style={{ color: "var(--red-cta)", marginBottom: "1rem", fontFamily: "var(--font-hand)" }}>
-          {error}
+          {t(error)}
         </p>
       )}
       {message && (
         <p style={{ color: "var(--blue-teal)", marginBottom: "1rem", fontFamily: "var(--font-hand)" }}>
-          {message}
+          {t(message)}
         </p>
       )}
 
       <form onSubmit={handleCreate} className="contact-card" style={{ marginBottom: "2rem" }}>
-        <h3 style={{ marginBottom: "1rem" }}>Add lesson</h3>
+        <h3 style={{ marginBottom: "1rem" }}>{t("Add lesson")}</h3>
         <div className="form-group">
-          <label htmlFor="new-lesson-title">Title</label>
+          <label htmlFor="new-lesson-title">{t("Title")}</label>
           <input
             id="new-lesson-title"
             type="text"
             value={newLesson.title}
             onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })}
-            placeholder="e.g. Animals flashcards"
+            placeholder={t("e.g. Animals flashcards")}
           />
         </div>
         {renderTypeFields(newLesson, setNewLesson, "new-lesson", creating)}
         <div className="form-group">
-          <label htmlFor="new-lesson-order">Order (within unit)</label>
+          <label htmlFor="new-lesson-order">{t("Order (within unit)")}</label>
           <input
             id="new-lesson-order"
             type="number"
             min={1}
             value={newLesson.orderIndex}
             onChange={(e) => setNewLesson({ ...newLesson, orderIndex: e.target.value })}
-            placeholder="Auto"
+            placeholder={t("Auto")}
           />
         </div>
         <button
@@ -597,10 +592,9 @@ export function LessonManager({ courseId, units, lessons }: Props) {
           {creating ? (
             <>
               <LoadingSpinner size="sm" />
-              Creating…
-            </>
+              {t("Creating…")}</>
           ) : (
-            "Create lesson"
+            t("Create lesson")
           )}
         </button>
       </form>
@@ -619,10 +613,10 @@ export function LessonManager({ courseId, units, lessons }: Props) {
                 marginBottom: "1rem",
               }}
             >
-              {unitKindLabel(unit.kind)}
+              {t(unitKindLabel(unit.kind))}
             </h2>
             {unitLessons.length === 0 ? (
-              <p style={{ color: "var(--ink-light)" }}>No lessons in this unit yet.</p>
+              <p style={{ color: "var(--ink-light)" }}>{t("No lessons in this unit yet.")}</p>
             ) : (
               <div className="course-grid">
                 {unitLessons.map((lesson, index) => renderLessonCard(lesson, index))}

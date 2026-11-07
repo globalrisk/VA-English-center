@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -8,6 +9,7 @@ import { redirect } from "next/navigation";
 import { CourseAgeGroupEditor } from "./CourseAgeGroupEditor";
 
 export default async function AdminCoursesPage() {
+  const t = await getTranslations();
   const profile = await getCurrentProfile();
 
   if (!profile || !isAdmin(profile)) {
@@ -26,20 +28,19 @@ export default async function AdminCoursesPage() {
       <Header variant="admin" />
       <main className="section">
         <div className="container">
-          <Breadcrumbs items={[{ label: "Admin", href: "/admin" }, { label: "Courses" }]} />
+          <Breadcrumbs items={[{ label: t("Admin"), href: "/admin" }, { label: t("Courses") }]} />
           <div className="section-header">
-            <span className="section-label">Admin</span>
+            <span className="section-label">{t("Admin")}</span>
             <h1 className="section-title">
-              Manage <span className="title-gold">Courses</span>
+              {t("Manage ")}<span className="title-gold">{t("Courses")}</span>
             </h1>
             <p className="section-sub">
-              Create, edit, and delete courses. Assign one or more age groups per course.
-            </p>
+              {t("Create, edit, and delete courses. Assign one or more age groups per course.")}</p>
           </div>
 
           {error && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
-              Could not load courses: {error.message}
+              {t("Could not load courses: ")}{error.message}
             </p>
           )}
 

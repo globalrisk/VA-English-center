@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { TestContentEditor } from "@/components/admin/TestContentEditor";
 import { ReadingTestPlayer } from "@/components/student/ReadingTestPlayer";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -28,6 +31,7 @@ export function TestLessonEditor({
   initialAttempt = null,
   onComplete,
 }: Props) {
+  const t = useTranslations();
   const router = useRouter();
   const [savedContent, setSavedContent] = useState(() =>
     normalizeTestContent(lesson.test_content)
@@ -115,7 +119,7 @@ export function TestLessonEditor({
     <div>
       {isAdmin && (
         <div className="test-lesson-editor-bar">
-          <div className="test-lesson-editor-bar-toggle" role="group" aria-label="View mode">
+          <div className="test-lesson-editor-bar-toggle" role="group" aria-label={t("View mode")}>
             <button
               type="button"
               className={mode === "play" ? "is-active" : ""}
@@ -124,8 +128,7 @@ export function TestLessonEditor({
                 if (mode === "edit") cancelEdit();
               }}
             >
-              Preview
-            </button>
+              {t("Preview")}</button>
             <button
               type="button"
               className={mode === "edit" ? "is-active" : ""}
@@ -134,8 +137,7 @@ export function TestLessonEditor({
                 if (mode === "play") startEdit();
               }}
             >
-              Edit
-            </button>
+              {t("Edit")}</button>
           </div>
 
           {mode === "edit" && (
@@ -149,10 +151,9 @@ export function TestLessonEditor({
                 {saving ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    Saving…
-                  </>
+                    {t("Saving…")}</>
                 ) : (
-                  "Save test"
+                  t("Save test")
                 )}
               </button>
               <button
@@ -161,16 +162,15 @@ export function TestLessonEditor({
                 disabled={saving}
                 onClick={cancelEdit}
               >
-                Cancel
-              </button>
+                {t("Cancel")}</button>
             </>
           )}
 
           {error && (
-            <p className="test-lesson-editor-bar-msg is-error">{error}</p>
+            <p className="test-lesson-editor-bar-msg is-error">{t(error)}</p>
           )}
           {!error && message && mode === "play" && (
-            <p className="test-lesson-editor-bar-msg is-ok">{message}</p>
+            <p className="test-lesson-editor-bar-msg is-ok">{t(message)}</p>
           )}
         </div>
       )}
@@ -193,8 +193,7 @@ export function TestLessonEditor({
         />
       ) : (
         <p style={{ color: "var(--ink-light)", fontFamily: "var(--font-hand)" }}>
-          This test is not ready yet.
-          {isAdmin ? " Switch to Edit to add a passage and questions." : ""}
+          {t("This test is not ready yet.")}{isAdmin ? t(" Switch to Edit to add a passage and questions.") : ""}
         </p>
       )}
     </div>

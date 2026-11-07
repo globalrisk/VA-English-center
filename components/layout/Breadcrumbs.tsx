@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "@/components/i18n/LanguageProvider";
 import Link from "next/link";
 
 export type BreadcrumbItem = {
@@ -10,8 +13,9 @@ type BreadcrumbsProps = {
 };
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
+  const t = useTranslations();
   return (
-    <nav className="breadcrumbs" aria-label="Breadcrumb">
+    <nav className="breadcrumbs" aria-label={t("Breadcrumb")}>
       <ol>
         {items.map((item, index) => {
           const isCurrent = index === items.length - 1;

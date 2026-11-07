@@ -1,3 +1,4 @@
+import { getTranslations } from "@/lib/i18n/server";
 import { Doodles } from "@/components/layout/Doodles";
 import { Header } from "@/components/layout/Header";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
@@ -12,6 +13,7 @@ type PageProps = {
 };
 
 export default async function AdminCourseLessonsPage({ params }: PageProps) {
+  const t = await getTranslations();
   const profile = await getCurrentProfile();
 
   if (!profile || !isAdmin(profile)) {
@@ -55,27 +57,26 @@ export default async function AdminCourseLessonsPage({ params }: PageProps) {
         <div className="container">
           <Breadcrumbs
             items={[
-              { label: "Admin", href: "/admin" },
-              { label: "Courses", href: "/admin/courses" },
+              { label: t("Admin"), href: "/admin" },
+              { label: t("Courses"), href: "/admin/courses" },
               { label: typedCourse.title },
             ]}
           />
           <div className="section-header">
-            <span className="section-label">Admin · Lessons</span>
+            <span className="section-label">{t("Admin · Lessons")}</span>
             <h1 className="section-title">{typedCourse.title}</h1>
             <p className="section-sub">
-              Add Game or Test lessons under Vocabulary, Reading, and Listening.
-            </p>
+              {t("Add Game or Test lessons under Vocabulary, Reading, and Listening.")}</p>
           </div>
 
           {unitsError && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
-              Could not load units: {unitsError.message}
+              {t("Could not load units: ")}{unitsError.message}
             </p>
           )}
           {lessonsError && (
             <p style={{ color: "var(--red-cta)", marginBottom: "1rem" }}>
-              Could not load lessons: {lessonsError.message}
+              {t("Could not load lessons: ")}{lessonsError.message}
             </p>
           )}
 

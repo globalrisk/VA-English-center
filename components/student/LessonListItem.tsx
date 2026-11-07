@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { builtinGameLabel } from "@/lib/builtin-games";
 import { lessonTypeLabel } from "@/lib/lesson-types";
 import type { Lesson } from "@/types/course";
@@ -22,26 +25,27 @@ function lessonBadgeLabel(lesson: Lesson): string {
 }
 
 function OpenLessonLabel({ pending, completed }: { pending: boolean; completed: boolean }) {
+  const t = useTranslations();
   if (pending) {
     return (
       <span
         className="course-link btn-loading"
         style={{ marginTop: "0.75rem", display: "inline-flex" }}
       >
-        <LoadingSpinner size="sm" label="Opening lesson" />
-        Opening lesson…
-      </span>
+        <LoadingSpinner size="sm" label={t("Opening lesson")} />
+        {t("Opening lesson…")}</span>
     );
   }
 
   return (
     <span className="course-link" style={{ marginTop: "0.75rem", display: "inline-block" }}>
-      {completed ? "Review lesson →" : "Open lesson →"}
+      {completed ? t("Review lesson →") : t("Open lesson →")}
     </span>
   );
 }
 
 export function LessonListItem({ courseId, lesson, index, completed = false }: Props) {
+  const t = useTranslations();
   const [pending, setPending] = useState(false);
   const href = `/student/course/${courseId}/lesson/${lesson.id}`;
 
@@ -52,10 +56,10 @@ export function LessonListItem({ courseId, lesson, index, completed = false }: P
       data-color="blue"
       onClick={() => setPending(true)}
     >
-      <span className="badge badge-yellow">{lessonBadgeLabel(lesson)}</span>
-      {completed ? <span className="lesson-complete-badge">✓ Completed</span> : null}
+      <span className="badge badge-yellow">{t(lessonBadgeLabel(lesson))}</span>
+      {completed ? <span className="lesson-complete-badge">{t("✓ Completed")}</span> : null}
       <h3>
-        Lesson {index + 1}: {lesson.title}
+        {t("Lesson ")}{index + 1}: {lesson.title}
       </h3>
       {lesson.content && (
         <p style={{ color: "var(--ink-light)", marginTop: "0.5rem" }}>

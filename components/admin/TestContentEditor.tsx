@@ -1,5 +1,8 @@
 "use client";
 
+import { useTranslations } from "@/components/i18n/LanguageProvider";
+
+
 import { AutoTextarea } from "@/components/ui/AutoTextarea";
 import {
   emptyMultipleChoiceQuestion,
@@ -35,6 +38,7 @@ export function TestContentEditor({
   fullHeight = false,
   onChange,
 }: Props) {
+  const t = useTranslations();
   const set = ensureSingleQuestionSet(value);
   const [passageSelection, setPassageSelection] =
     useState<QuestionPassageLocation | null>(null);
@@ -75,9 +79,9 @@ export function TestContentEditor({
     <div
       className={`test-editor-layout ${fullHeight ? "test-editor-layout--full" : ""}`}
     >
-      <section className="test-editor-passage" aria-label="Passage editor">
+      <section className="test-editor-passage" aria-label={t("Passage editor")}>
         <label className="test-editor-time-limit">
-          <span>First-attempt time limit</span>
+          <span>{t("First-attempt time limit")}</span>
           <span className="test-editor-time-limit-control">
             <input
               type="number"
@@ -86,12 +90,12 @@ export function TestContentEditor({
               step={1}
               value={value.timeLimitMinutes}
               disabled={disabled}
-              aria-label="Test time limit in minutes"
+              aria-label={t("Test time limit in minutes")}
               onChange={(e) =>
                 patch({ timeLimitMinutes: Number(e.target.value) })
               }
             />
-            minutes
+            {t("minutes")}
           </span>
         </label>
         <input
@@ -99,8 +103,8 @@ export function TestContentEditor({
           className="reading-test-passage-title test-editor-field test-editor-field-title"
           value={value.passageTitle}
           disabled={disabled}
-          placeholder="Passage title…"
-          aria-label="Passage title"
+          placeholder={t("Passage title…")}
+          aria-label={t("Passage title")}
           onChange={(e) => patch({ passageTitle: e.target.value })}
         />
 
@@ -113,7 +117,7 @@ export function TestContentEditor({
                   className="test-editor-field test-editor-field-label"
                   value={paragraph.label}
                   disabled={disabled}
-                  aria-label={`Paragraph ${index + 1} label`}
+                  aria-label={t("Paragraph {0} label", { 0: index + 1 })}
                   onChange={(e) => updateParagraph(index, "label", e.target.value)}
                 />
                 <span className="test-editor-label-dot" aria-hidden="true">
@@ -124,8 +128,8 @@ export function TestContentEditor({
                   value={paragraph.text}
                   disabled={disabled}
                   rows={3}
-                  placeholder="Paragraph text…"
-                  aria-label={`Paragraph ${paragraph.label || index + 1} text`}
+                  placeholder={t("Paragraph text…")}
+                  aria-label={t("Paragraph {0} text", { 0: paragraph.label || index + 1 })}
                   onChange={(e) => updateParagraph(index, "text", e.target.value)}
                   onSelect={(e) => {
                     const target = e.currentTarget;
@@ -145,8 +149,8 @@ export function TestContentEditor({
                   type="button"
                   className="test-editor-icon-btn"
                   disabled={disabled || value.paragraphs.length <= 1}
-                  title="Remove paragraph"
-                  aria-label="Remove paragraph"
+                  title={t("Remove paragraph")}
+                  aria-label={t("Remove paragraph")}
                   onClick={() => removeParagraph(index)}
                 >
                   ×
@@ -162,16 +166,15 @@ export function TestContentEditor({
           disabled={disabled}
           onClick={addParagraph}
         >
-          + Add paragraph
-        </button>
+          {t("+ Add paragraph")}</button>
         <p className="test-editor-selection-note" aria-live="polite">
           {passageSelection
-            ? `Selected from paragraph ${passageSelection.paragraphLabel || "?"}: “${passageSelection.text}”`
-            : "Select text in a passage paragraph, then map it to a question."}
+            ? t("Selected from paragraph {0}: “{1}”", { 0: passageSelection.paragraphLabel || "?", 1: passageSelection.text })
+            : t("Select text in a passage paragraph, then map it to a question.")}
         </p>
       </section>
 
-      <section className="test-editor-questions" aria-label="Questions editor">
+      <section className="test-editor-questions" aria-label={t("Questions editor")}>
         <MultipleChoiceQuestionsEditor
           set={set}
           disabled={disabled}
@@ -194,6 +197,7 @@ function MultipleChoiceQuestionsEditor({
   passageSelection: QuestionPassageLocation | null;
   onChange: (set: MultipleChoiceSet) => void;
 }) {
+  const t = useTranslations();
   function updateQuestion(index: number, question: MultipleChoiceQuestion) {
     onChange({
       ...set,
@@ -229,8 +233,8 @@ function MultipleChoiceQuestionsEditor({
               value={question.prompt}
               disabled={disabled}
               rows={2}
-              placeholder="Question about the passage…"
-              aria-label={`Question ${question.number}`}
+              placeholder={t("Question about the passage…")}
+              aria-label={t("Question {0}", { 0: question.number })}
               onChange={(e) =>
                 updateQuestion(index, { ...question, prompt: e.target.value })
               }
@@ -238,7 +242,7 @@ function MultipleChoiceQuestionsEditor({
           </div>
 
           <div className="test-editor-choice-mode">
-            <label htmlFor={`choice-mode-${index}`}>Answer type</label>
+            <label htmlFor={`choice-mode-${index}`}>{t("Answer type")}</label>
             <select
               id={`choice-mode-${index}`}
               value={question.choiceMode}
@@ -250,20 +254,20 @@ function MultipleChoiceQuestionsEditor({
                 )
               }
             >
-              <option value="single">Single choice</option>
-              <option value="multiple">Multiple choice</option>
+              <option value="single">{t("Single choice")}</option>
+              <option value="multiple">{t("Multiple choice")}</option>
             </select>
             <span className="test-editor-choice-hint">
               {question.choiceMode === "multiple"
-                ? "Mark every correct option (students pick all that apply)."
-                : "Mark exactly one correct option."}
+                ? t("Mark every correct option (students pick all that apply).")
+                : t("Mark exactly one correct option.")}
             </span>
           </div>
 
           <div
             className="reading-test-mcq-options"
             role={question.choiceMode === "single" ? "radiogroup" : "group"}
-            aria-label={`Correct answers for question ${question.number}`}
+            aria-label={t("Correct answers for question {0}", { 0: question.number })}
           >
             {question.options.map((option, optionIndex) => {
               const isCorrect = isOptionCorrect(question, optionIndex);
@@ -293,8 +297,8 @@ function MultipleChoiceQuestionsEditor({
                     className="test-editor-field test-editor-field-option"
                     value={option}
                     disabled={disabled}
-                    placeholder={`Option ${optionLetter(optionIndex)}`}
-                    aria-label={`Question ${question.number} option ${optionLetter(optionIndex)}`}
+                    placeholder={t("Option {0}", { 0: optionLetter(optionIndex) })}
+                    aria-label={t("Question {0} option {1}", { 0: question.number, 1: optionLetter(optionIndex) })}
                     onChange={(e) =>
                       updateQuestion(index, {
                         ...question,
@@ -306,15 +310,14 @@ function MultipleChoiceQuestionsEditor({
                   />
                   {isCorrect && (
                     <span className="test-editor-correct-badge" aria-hidden="true">
-                      Correct
-                    </span>
+                      {t("Correct")}</span>
                   )}
                   <button
                     type="button"
                     className="test-editor-icon-btn"
                     disabled={disabled || question.options.length <= MIN_OPTIONS}
-                    title="Remove option"
-                    aria-label={`Remove option ${optionLetter(optionIndex)}`}
+                    title={t("Remove option")}
+                    aria-label={t("Remove option {0}", { 0: optionLetter(optionIndex) })}
                     onClick={(e) => {
                       e.preventDefault();
                       const nextOptions = question.options.filter(
@@ -350,15 +353,15 @@ function MultipleChoiceQuestionsEditor({
           </div>
 
           <div className="test-editor-explanation">
-            <label htmlFor={`explanation-${index}`}>Answer explanation</label>
+            <label htmlFor={`explanation-${index}`}>{t("Answer explanation")}</label>
             <AutoTextarea
               id={`explanation-${index}`}
               className="test-editor-field test-editor-field-explanation"
               value={question.explanation}
               disabled={disabled}
               rows={3}
-              placeholder="Optional: walk students through the answer after they finish…"
-              aria-label={`Question ${question.number} explanation`}
+              placeholder={t("Optional: walk students through the answer after they finish…")}
+              aria-label={t("Question {0} explanation", { 0: question.number })}
               onChange={(e) =>
                 updateQuestion(index, {
                   ...question,
@@ -370,7 +373,7 @@ function MultipleChoiceQuestionsEditor({
 
           <div className="test-editor-location">
             <div className="test-editor-location-heading">
-              <span>Correct-answer passage mappings</span>
+              <span>{t("Correct-answer passage mappings")}</span>
             </div>
             <div className="test-editor-answer-locations">
               {question.correctOptionIndexes.map((optionIndex) => {
@@ -382,8 +385,8 @@ function MultipleChoiceQuestionsEditor({
                   >
                     <div className="test-editor-answer-location-actions">
                       <strong>
-                        Answer {optionLetter(optionIndex)} —{" "}
-                        {question.options[optionIndex] || "Empty option"}
+                        {t("Answer ")}{optionLetter(optionIndex)} —{" "}
+                        {question.options[optionIndex] || t("Empty option")}
                       </strong>
                       <button
                         type="button"
@@ -400,8 +403,7 @@ function MultipleChoiceQuestionsEditor({
                           });
                         }}
                       >
-                        Use selected passage text
-                      </button>
+                        {t("Use selected passage text")}</button>
                       {location && (
                         <button
                           type="button"
@@ -416,20 +418,19 @@ function MultipleChoiceQuestionsEditor({
                             })
                           }
                         >
-                          Clear
-                        </button>
+                          {t("Clear")}</button>
                       )}
                     </div>
                     {location ? (
                       <blockquote className="test-editor-location-quote">
                         <strong>
-                          Paragraph {location.paragraphLabel || "?"}
+                          {t("Paragraph ")}{location.paragraphLabel || "?"}
                         </strong>
                         <span>“{location.text}”</span>
                       </blockquote>
                     ) : (
                       <p className="test-editor-location-empty">
-                        No passage text mapped to answer{" "}
+                        {t("No passage text mapped to answer")}{" "}
                         {optionLetter(optionIndex)}.
                       </p>
                     )}
@@ -452,16 +453,14 @@ function MultipleChoiceQuestionsEditor({
                 })
               }
             >
-              + Add option
-            </button>
+              {t("+ Add option")}</button>
             <button
               type="button"
               className="btn btn-secondary btn-sm"
               disabled={disabled || set.questions.length <= 1}
               onClick={() => removeQuestion(index)}
             >
-              Remove question
-            </button>
+              {t("Remove question")}</button>
           </div>
         </div>
       ))}
@@ -472,8 +471,7 @@ function MultipleChoiceQuestionsEditor({
         disabled={disabled}
         onClick={addQuestion}
       >
-        + Add question
-      </button>
+        {t("+ Add question")}</button>
     </div>
   );
 }
